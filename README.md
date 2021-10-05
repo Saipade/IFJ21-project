@@ -1,7 +1,7 @@
 # IFJ21-project
 
 IPPcode/IFJcode -- расширение для vs code  
-Teal(Lua) -- переводимый язык, IFJcode (~= Assembler) -- язык, до которого переводим
+Teal(Lua) -- переводимый язык, IFJcode (~= Assembler) -- язык, до которого переводим  
 https://github.com/harmim/vut-ifj-project -- code to steal  
 
 Реализация таблицы символов -- binary search tree в файле symtable.c (symtable.h)  
