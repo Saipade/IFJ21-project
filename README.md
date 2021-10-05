@@ -1,10 +1,10 @@
 # IFJ21-project
 
 IPPcode/IFJcode -- расширение для vs code  
-Teal(Lua) -- переводимый язык  
+Teal(Lua) -- переводимый язык, IFJcode (~= Assembler) -- язык, до которого переводим
 https://github.com/harmim/vut-ifj-project -- code to steal  
 
-Реализация таблицы символов -- binary searchn tree в файле symtable.c (symtable.h)  
+Реализация таблицы символов -- binary search tree в файле symtable.c (symtable.h)  
 
 0. democvika z roku 2008  
 1. http://what-when-how.com/compiler-writing/scanners-compiler-writing-part-1/ tady jsou informace nejenom o sytnakticke analyze  
