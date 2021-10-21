@@ -1,7 +1,12 @@
+#ifndef SCANNER_H
+#define SCANNER_H
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+
+#include "string_processor.h"
 
 // Scanner states
 #define SCANNER_STATE_START 0                   // Starting state
@@ -9,11 +14,11 @@
 #define SCANNER_STATE_TILD 2                    // Tilda; encountering '=' leads to TT_NEQ
 #define SCANNER_STATE_FIRST_DASH 3              // Might be either minus operator or start of comment
 #define SCANNER_STATE_SLASH 4                   // Slash
-#define SCANNER_STATE_COMMENT 5                 // 
+#define SCANNER_STATE_COMMENT_LINE 5            // 
 #define SCANNER_STATE_COMMENT_READ 6            // Skipping line comment
-#define SCANNER_STATE_COMMENT_LSQBRACKET 7      // First square bracket after double dash
-#define SCANNER_STATE_COMMENTARYBLOCK 8         // Start of commentary block
-#define SCANNER_STATE_COMMENTARYBLOCK_READ 9    // Reading commentary block
+#define SCANNER_STATE_COMMENT_LSB 7             // First square bracket after double dash
+#define SCANNER_STATE_COMMENTBLOCK 8            // Start of commentary block
+#define SCANNER_STATE_COMMENTBLOCK_EXIT 9       // exit?
 #define SCANNER_STATE_INT 10                    // Integer state; can be converted either to _DOUBLE after encountering _POINT or _EXP after encountering e(E) or remain _INT
 #define SCANNER_STATE_EXP 11                    // e(E) found; can be converted either to 
 #define SCANNER_STATE_EXP_NUM 12                // exp -> num
@@ -43,7 +48,7 @@
 #define DYNAMIC_STR_STARTING_MEM 20
 #define DYNAMIC_STR_INCREASE_MEM 10
 
-FILE *srcF;                 // pointer to file that will be scanned
+
 
 // Keywords
 typedef enum {
@@ -66,14 +71,6 @@ typedef enum {
 
 } Keyword;
 
-// String processing structure
-typedef struct {
-
-	char *str;              // string itself
-	int length;             // length of string
-    int size;               // for memory alloc
-
-} Dynamic_string;
 // Token attribute
 typedef union {
 
@@ -130,28 +127,6 @@ typedef struct {
  *         1 in case of lexical error,
  *         99 in case of internal error
  */
-int get_next_token(Token *token);
+int get_next_token ( Token *token );
 
-
-// String processing
-/** Initialization of dynamic string
- * @param cStr pointer to current dynamic string
- */
-bool ds_init ( Dynamic_string *cStr );
-
-/** Adds character to the end of dynamic string
- * @param cStr pointer to current dynamic string
- * @param c character that will be added
- */
-bool ds_add_next ( Dynamic_string *cStr, char s );
-
-/** Copies string from one dynamic string to another 
- * @param src pointer to source dynamic string
- * @param dst pointer to destination dynamic string
- */
-bool ds_copy ( Dynamic_string *src, Dynamic_string *dst );
-
-/** Frees alocated memory of dynamic string
- * @param cStr pointer to current dynamic string
- */
-void ds_mem_free ( Dynamic_string *cStr );
+#endif
