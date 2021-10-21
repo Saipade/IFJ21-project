@@ -50,7 +50,7 @@ bool ds_copy ( Dynamic_string *src, Dynamic_string *dst );
 /** 
  * Frees alocated memory of dynamic string
  * @param cStr pointer to current dynamic string
- * @return
+ * @return 
  */
 void ds_mem_free ( Dynamic_string *cStr );
 
