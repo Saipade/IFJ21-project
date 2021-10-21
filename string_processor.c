@@ -4,7 +4,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
+#include <stdbool.h> 
 
 #include "string_processor.h"
 
