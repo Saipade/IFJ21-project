@@ -9,57 +9,17 @@
 #include "scanner.h"
 #include "errorslist.h"
 
-// pointer to file that will be scanned
-FILE *srcF;                 
+// Pointer to file that will be scanned
+FILE *srcF;  
+// dynamic string for token->attribute.string               
 Dynamic_string *dynamicString;
 
 
-bool ds_init ( Dynamic_string *cStr ) {
-
-    if (!(cStr->str = (char*) malloc( DYNAMIC_STR_STARTING_MEM ))) return false;  // starting allocated memory = 20
-    
-    cStr->length = 0;
-    cStr->str[cStr->length] = '\0';
-    cStr->size = DYNAMIC_STR_STARTING_MEM;
-
-    return true;
-
-}
-
-bool ds_add_next ( Dynamic_string *cStr, char c ) {
-
-    if (cStr->length + 2 >= cStr->size) {
-        cStr->size = cStr->length + DYNAMIC_STR_INCREASE_MEM;
-        if (!(cStr->str = (char*) realloc( cStr->str, cStr->size ))) return false;
-    }
-
-    cStr->str[cStr->length++] = c;
-    cStr->str[cStr->length] = '\0';
-
-    return true;
-
-}
-
-bool ds_copy ( Dynamic_string *src, Dynamic_string *dst ) {
-
-    if (src->length >= dst->size) {
-        if (!(dst->str = (char*) realloc( dst->str, src->length + 2 ))) return false;
-        dst->size = src->length + 2;
-    }
-    
-    strcpy( dst->str, src->str );
-    dst->length = src->length;
-    
-    return true;
-
-}
-
-void ds_mem_free ( Dynamic_string *cStr ) {
-
-    free( cStr->str );
-
-}
-
+/** Pre-return number processing
+ * @param cStr current dynamic string
+ * @param token pointer to token
+ * @return 0 in case the token is ok
+ */
 static int _integer_or_double ( Dynamic_string *cStr, Token *token ) {
 
     char *ptr;
@@ -79,10 +39,15 @@ static int _integer_or_double ( Dynamic_string *cStr, Token *token ) {
     }
 
 }
-
+/** Pre-return identifier/keyword processing
+ * @param cStr current dynamic string
+ * @param token pointer to token
+ * @return 0 in case the token is ok
+ *         99 in case of internal error
+ */
 static int _keyword_or_id ( Dynamic_string *cStr, Token *token ) {
 
-    if (strcmp( cStr->str, "do" ) == 0) token->attribute.keyword = KW_DO;
+    if      (strcmp( cStr->str, "do" ) == 0) token->attribute.keyword = KW_DO;
     else if (strcmp( cStr->str, "else" ) == 0) token->attribute.keyword = KW_ELSE;
     else if (strcmp( cStr->str, "end" ) == 0) token->attribute.keyword = KW_END;
     else if (strcmp( cStr->str, "function" ) == 0) token->attribute.keyword = KW_FUNCTION;
@@ -99,32 +64,42 @@ static int _keyword_or_id ( Dynamic_string *cStr, Token *token ) {
     else if (strcmp( cStr->str, "while" ) == 0) token->attribute.keyword = KW_WHILE;
     
     else token->type = TT_IDE;
-
+    
     if (token->type != TT_IDE) {
         token->type = TT_KEY;
         ds_mem_free( cStr );
         return SCAN_OK;
     }
-
+    
     if (!ds_copy( cStr, token->attribute.string )) {
         ds_mem_free( cStr );
         return ERR_INTERNAL;
     }
 
+    ds_mem_free( cStr );
+    return SCAN_OK;
 
 }
 
-int get_next_token( Token *token ) {
+void set_dynamic_string(Dynamic_string *string) {
+	dynamicString = string;
+}
 
-    if (!srcF) return ERR_INTERNAL;
+int get_next_token ( Token *token ) {
 
+    if (srcF == NULL || dynamicString == NULL) {
+        return ERR_INTERNAL;
+    }
     int scannerState = SCANNER_STATE_START;
+    
     token->type = TT_EMPTY;
     token->attribute.string = dynamicString;
-    char ESstr[3], c;
 
-    Dynamic_string *scannerString;
+    Dynamic_string str;
+    Dynamic_string *scannerString = &str;
     if (!ds_init( scannerString )) return ERR_INTERNAL;
+    
+    char ESstr[3], c;
     
     while (true) {
 
