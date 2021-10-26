@@ -214,7 +214,7 @@ int get_next_token ( Token *token ) {
                     token->type = TT_EOF;
                     return SCAN_OK;
                 }
-
+ 
                 else {
                     ds_mem_free( scannerString );
                     return ERR_LEXICAL;
