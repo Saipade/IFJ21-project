@@ -1,4 +1,4 @@
-#ifndef SCANNER_H 
+#ifndef SCANNER_H
 #define SCANNER_H
 
 #include <stdlib.h>
@@ -44,6 +44,7 @@
 #define SCANNER_STATE_LT 33                     // Less than state
 #define SCANNER_STATE_MET 34                    // More or equal state
 #define SCANNER_STATE_LET 35                    // Less or equal state
+#define SCANNER_STATE_EQUAL_SIGN 36             // Equal sign -> '=' or "=="
 // TODO : ADD MORE STATES
 #define DYNAMIC_STR_STARTING_MEM 20
 #define DYNAMIC_STR_INCREASE_MEM 10
@@ -66,6 +67,7 @@ typedef enum {
     KW_REQUIRE,             // require
     KW_RETURN,              // return
     KW_STRING,              // string
+    KW_BOOL,
     KW_THEN,                // then
     KW_WHILE,               // while
 
@@ -80,6 +82,7 @@ typedef union {
 	Keyword keyword;        // If token is keyword
 
 } Token_attribute;
+
 // Types of token
 typedef enum {
 
@@ -104,6 +107,7 @@ typedef enum {
     TT_MET,                 // more or equal than
     TT_EQU,                 // equal
     TT_NEQ,                 // not equal
+    TT_IEQ,                 // equal for if conditions
 
     TT_LBR,                 // (
     TT_RBR,                 // )
