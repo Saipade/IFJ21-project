@@ -492,7 +492,7 @@ int get_next_token ( Token *token ) {
                     scannerState = SCANNER_STATE_COMMENT_READ;
                 }
 
-            break;
+            break; 
 
             case (SCANNER_STATE_COMMENT_LSB): // --[
 
