@@ -1,22 +1,45 @@
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h> 
+#ifndef SYMTABLE_H
+#define SYMTABLE_H
 
-typedef struct { // binary search tree struct
-  int symbol;
-  symbol_BST *Left;
-  symbol_BST *Right;
-} symbol_BST;
+#include "string_processor.h"
 
-typedef struct { // pointer to head of binary search tree
-  symbol_BST *head;
-} BST;
+typedef enum {
 
-enum data_type {
-  DT_INTEGER,
-  DT_NUMBER,
-  DT_STRING,
-};
+    IT_INT,
+    IT_DOU,
+    IT_STR,
+    IT_BOO,
+    IT_NIL,
+    IT_ND,
 
-void BST_init (BST* bst);
-void BST_insert_node ()
+} Item_dataType;
+
+typedef struct {
+
+    Item_dataType type;     //
+    bool scale;             // 0 = global; 1 = local
+    bool ifdef;             // for functions: 0 = not defined, 1 = defined
+    Dynamic_string *types;  // for function declarations: "input types#output types"
+                            // types are represented so: i - int, d(ouble) - num, s - str, b - bool
+} Item_data;
+
+typedef struct {
+
+    char *key;
+    Item_data data;
+    struct Sym_table_item *leftItem;
+    struct Sym_table_item *rightItem;
+
+} Sym_table_item;
+
+typedef struct {
+
+    Sym_table_item *rootItem;
+
+} Sym_table;
+
+bool st_init ( Sym_table *symTable );
+Sym_table *st_insert ( Sym_table_item *rootItem, Sym_table_item *newItem );
+
+
+#endif
