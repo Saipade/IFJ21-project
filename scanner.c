@@ -1,6 +1,8 @@
 /*
 
 */
+#ifndef SCANNER_C
+#define SCANNER_C
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,83 +13,91 @@
 
 // Pointer to file that will be scanned
 FILE *srcF;  
-// dynamic string for token->attribute.string               
+
+void _source_file ( FILE *file ) {
+    srcF = file;
+}
+
+// Dynamic string for token               
 Dynamic_string *dynamicString;
 
+void _dynamic_string ( Dynamic_string *string ) {
+
+	dynamicString = string;
+
+}
 
 /** Pre-return number processing
- * @param cStr current dynamic string
+ * @param str dynamic string
  * @param token pointer to token
  * @return 0 in case the token is ok
  */
-static int _integer_or_double ( Dynamic_string *cStr, Token *token ) {
+int _integer_or_number ( Dynamic_string *str, Token *token ) {
 
     char *ptr;
     
     if (token->type == TT_INT) {
-        int tmp = (int) strtol( cStr->str, &ptr, 10 );
+        int tmp = (int) strtol( str->str, &ptr, 10 );
         token->attribute.integer = tmp;
-        ds_mem_free( cStr );
+        ds_free( str );
         return SCAN_OK;
     } 
     
     else if (token->type == TT_DOU) {
-        double tmp = strtod( cStr->str, &ptr );
+        double tmp = strtod( str->str, &ptr );
         token->attribute.floating = tmp;
-        ds_mem_free( cStr );
+        ds_free( str );
         return SCAN_OK;
     }
 
 }
 /** Pre-return identifier/keyword processing
- * @param cStr current dynamic string
+ * @param str dynamic string
  * @param token pointer to token
  * @return 0 in case the token is ok
  *         99 in case of internal error
  */
-static int _keyword_or_id ( Dynamic_string *cStr, Token *token ) {
+int _keyword_or_id ( Dynamic_string *str, Token *token ) {
 
-    if      (strcmp( cStr->str, "do" ) == 0) token->attribute.keyword = KW_DO;
-    else if (strcmp( cStr->str, "else" ) == 0) token->attribute.keyword = KW_ELSE;
-    else if (strcmp( cStr->str, "end" ) == 0) token->attribute.keyword = KW_END;
-    else if (strcmp( cStr->str, "function" ) == 0) token->attribute.keyword = KW_FUNCTION;
-    else if (strcmp( cStr->str, "global" ) == 0) token->attribute.keyword = KW_GLOBAL;
-    else if (strcmp( cStr->str, "if" ) == 0) token->attribute.keyword = KW_IF;
-    else if (strcmp( cStr->str, "integer" ) == 0) token->attribute.keyword = KW_INTEGER;
-    else if (strcmp( cStr->str, "local" ) == 0) token->attribute.keyword = KW_LOCAL;
-    else if (strcmp( cStr->str, "nil" ) == 0) token->attribute.keyword = KW_NIL;
-    else if (strcmp( cStr->str, "number" ) == 0) token->attribute.keyword = KW_NUMBER;
-    else if (strcmp( cStr->str, "require" ) == 0) token->attribute.keyword = KW_REQUIRE;
-    else if (strcmp( cStr->str, "return" ) == 0) token->attribute.keyword = KW_RETURN;
-    else if (strcmp( cStr->str, "string" ) == 0) token->attribute.keyword = KW_STRING;
-    else if (strcmp( cStr->str, "then" ) == 0) token->attribute.keyword = KW_THEN;
-    else if (strcmp( cStr->str, "while" ) == 0) token->attribute.keyword = KW_WHILE;
+    if      (strcmp( str->str, "do" ) == 0) token->attribute.keyword = KW_DO;
+    else if (strcmp( str->str, "else" ) == 0) token->attribute.keyword = KW_ELSE;
+    else if (strcmp( str->str, "end" ) == 0) token->attribute.keyword = KW_END;
+    else if (strcmp( str->str, "function" ) == 0) token->attribute.keyword = KW_FUNCTION;
+    else if (strcmp( str->str, "global" ) == 0) token->attribute.keyword = KW_GLOBAL;
+    else if (strcmp( str->str, "if" ) == 0) token->attribute.keyword = KW_IF;
+    else if (strcmp( str->str, "bool" ) == 0) token->attribute.keyword = KW_BOOL;
+    else if (strcmp( str->str, "integer" ) == 0) token->attribute.keyword = KW_INTEGER;
+    else if (strcmp( str->str, "local" ) == 0) token->attribute.keyword = KW_LOCAL;
+    else if (strcmp( str->str, "nil" ) == 0) token->attribute.keyword = KW_NIL;
+    else if (strcmp( str->str, "number" ) == 0) token->attribute.keyword = KW_NUMBER;
+    else if (strcmp( str->str, "require" ) == 0) token->attribute.keyword = KW_REQUIRE;
+    else if (strcmp( str->str, "return" ) == 0) token->attribute.keyword = KW_RETURN;
+    else if (strcmp( str->str, "string" ) == 0) token->attribute.keyword = KW_STRING;
+    else if (strcmp( str->str, "then" ) == 0) token->attribute.keyword = KW_THEN;
+    else if (strcmp( str->str, "while" ) == 0) token->attribute.keyword = KW_WHILE;
     
     else token->type = TT_IDE;
     
     if (token->type != TT_IDE) {
         token->type = TT_KEY;
-        ds_mem_free( cStr );
+        ds_free( str );
         return SCAN_OK;
     }
     
-    if (!ds_copy( cStr, token->attribute.string )) {
-        ds_mem_free( cStr );
+    if (!ds_copy( str, token->attribute.string )) {
+        ds_free( str );
         return ERR_INTERNAL;
     }
 
-    ds_mem_free( cStr );
+    ds_free( str );
     return SCAN_OK;
 
 }
 
-void set_dynamic_string(Dynamic_string *string) {
-	dynamicString = string;
-}
 
 int get_next_token ( Token *token ) {
 
-    if (srcF == NULL || dynamicString == NULL) {
+    if (!srcF || !dynamicString) {
         return ERR_INTERNAL;
     }
     int scannerState = SCANNER_STATE_START;
@@ -109,17 +119,17 @@ int get_next_token ( Token *token ) {
 
             case (SCANNER_STATE_START):
 
-                if (c == ' ') {
+                if (c == ' ' || c == '\n') {
                     scannerState = SCANNER_STATE_START;
                 } 
-
+/* 
                 else if (c == '\n') {
                     scannerState = SCANNER_STATE_EOL;
-                } 
+                }  */
 
                 else if (c >= '1' && c <= '9') {
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
                     scannerState = SCANNER_STATE_INT;
@@ -127,7 +137,7 @@ int get_next_token ( Token *token ) {
 
                 else if (c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
                     scannerState = SCANNER_STATE_ID;
@@ -142,7 +152,7 @@ int get_next_token ( Token *token ) {
                 } 
 
                 else if (c == '+') { 
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     token->type = TT_ADD;
                     return SCAN_OK;
                 } 
@@ -152,7 +162,7 @@ int get_next_token ( Token *token ) {
                 } 
 
                 else if (c == '*') { 
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     token->type = TT_MUL;
                     return SCAN_OK;
                 } 
@@ -163,7 +173,8 @@ int get_next_token ( Token *token ) {
                 } 
 
                 else if (c == '=') { 
-                    ds_mem_free( scannerString );
+                    scannerState = SCANNER_STATE_EQUAL_SIGN;
+                    ds_free( scannerString );
                     token->type = TT_EQU;
                     return SCAN_OK;
                 }
@@ -173,31 +184,31 @@ int get_next_token ( Token *token ) {
                 }
                 
                 else if (c == ':') { 
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     token->type = TT_COL;
                     return SCAN_OK;
                 }
 
                 else if (c == ',') { 
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     token->type = TT_COM;
                     return SCAN_OK;
                 }
                 
                 else if (c == '(') { 
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     token->type = TT_LBR;
                     return SCAN_OK;
                 }
                 
                 else if (c == ')') { 
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     token->type = TT_RBR;
                     return SCAN_OK;
                 }
                 
                 else if (c == '#') { 
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     token->type = TT_LEN;
                 }
 
@@ -210,34 +221,34 @@ int get_next_token ( Token *token ) {
                 }
 
                 else if (c == EOF) { 
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     token->type = TT_EOF;
                     return SCAN_OK;
                 }
- 
+
                 else {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return ERR_LEXICAL;
                 }
                 break;
 
-            case (SCANNER_STATE_EOL):
+            /* case (SCANNER_STATE_EOL):
                 
                 if (c == ' ') break;
 
                 token->type = TT_EOL;
                 ungetc( c, srcF );
-                ds_mem_free( scannerString );
+                ds_free( scannerString );
                 return SCAN_OK;
 
-            break;
+            break; */
 
             // NUMBER PROCESSING
             case (SCANNER_STATE_INT):
 
                 if (c >= '0' && c <= '9') {
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
                 } 
@@ -245,7 +256,7 @@ int get_next_token ( Token *token ) {
                 else if (c == '.') {
                     scannerState = SCANNER_STATE_POINT;
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
                 } 
@@ -253,7 +264,7 @@ int get_next_token ( Token *token ) {
                 else if (c == 'E' || c == 'e') {
                     scannerState = SCANNER_STATE_EXP;
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
                 }
@@ -261,7 +272,7 @@ int get_next_token ( Token *token ) {
                 else { 
                     ungetc( c, srcF );
                     token->type = TT_INT;
-                    return _integer_or_double( scannerString, token );
+                    return _integer_or_number( scannerString, token );
                 }
 
             break;
@@ -271,13 +282,13 @@ int get_next_token ( Token *token ) {
                 if (c >= '0' && c <= '9') {
                     scannerState = SCANNER_STATE_DOUBLE;
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
                 }
 
                 else {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return ERR_LEXICAL;
                 }
 
@@ -287,7 +298,7 @@ int get_next_token ( Token *token ) {
 
                 if(c >= '0' && c <= '9') {
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
                 } 
@@ -295,7 +306,7 @@ int get_next_token ( Token *token ) {
                 else if (c == 'e' && c == 'E') {
                     scannerState = SCANNER_STATE_EXP;
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
                 }
@@ -303,7 +314,7 @@ int get_next_token ( Token *token ) {
                 else { 
                     ungetc( c, srcF );
                     token->type = TT_DOU;
-                    return _integer_or_double( scannerString, token );
+                    return _integer_or_number( scannerString, token );
                 }
 
             break;
@@ -313,7 +324,7 @@ int get_next_token ( Token *token ) {
                 if (c >= '0' && c <= '9') {
                     scannerState = SCANNER_STATE_EXP_NUM;
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
                 }
@@ -321,13 +332,13 @@ int get_next_token ( Token *token ) {
                 else if (c == '+' || c == '-') {
                     scannerState = SCANNER_STATE_EXP_SIGN;
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
                 }
 
                 else {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return ERR_LEXICAL;
                 }
             
@@ -337,7 +348,7 @@ int get_next_token ( Token *token ) {
 
                 if(c >= '0' && c <= '9') {
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
                 }
@@ -345,7 +356,7 @@ int get_next_token ( Token *token ) {
                 else {
                     ungetc( c, srcF );
                     token->type = TT_DOU;
-                    return _integer_or_double( scannerString, token );
+                    return _integer_or_number( scannerString, token );
                 }
                 
             break;
@@ -355,13 +366,13 @@ int get_next_token ( Token *token ) {
                 if(c >= '0' && c <= '9') {
                     scannerState = SCANNER_STATE_EXP_NUM;
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
                 }
 
                 else {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return ERR_LEXICAL;
                 }
 
@@ -372,7 +383,7 @@ int get_next_token ( Token *token ) {
 
                 if (c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c > '0' && c < '9')) {
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
                 } 
@@ -397,7 +408,7 @@ int get_next_token ( Token *token ) {
                     
                 }
 
-                ds_mem_free( scannerString );
+                ds_free( scannerString );
                 return SCAN_OK;
 
             break;
@@ -413,7 +424,7 @@ int get_next_token ( Token *token ) {
                     token->type = TT_LTH;
                 }
 
-                ds_mem_free( scannerString );
+                ds_free( scannerString );
                 return SCAN_OK;
 
             break;
@@ -421,14 +432,31 @@ int get_next_token ( Token *token ) {
             case (SCANNER_STATE_TILD):
 
                 if (c == '=') {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     token->type = TT_NEQ;
                     return SCAN_OK;
                 } 
 
                 else {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return ERR_LEXICAL;
+                }
+
+            break;
+
+            case (SCANNER_STATE_EQUAL_SIGN): 
+                
+                if (c == '=') {
+                    ds_free( scannerString );
+                    token->type = TT_IEQ;
+                    return SCAN_OK;
+                }
+
+                else {
+                    ungetc( c, srcF );
+                    ds_free( scannerString );
+                    token->type = TT_EQU;
+                    return SCAN_OK;
                 }
 
             break;
@@ -441,7 +469,8 @@ int get_next_token ( Token *token ) {
                 } 
                 
                 else {
-                    ds_mem_free( scannerString );
+                    ungetc( c, srcF );
+                    ds_free( scannerString );
                     token->type = TT_SUB;
                     return SCAN_OK;
                 }
@@ -498,7 +527,7 @@ int get_next_token ( Token *token ) {
                 }
 
                 else if (c == EOF) {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return ERR_LEXICAL;
                 }
 
@@ -511,7 +540,7 @@ int get_next_token ( Token *token ) {
                 }
 
                 else if (c == EOF) {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return ERR_LEXICAL;
                 }
 
@@ -529,10 +558,11 @@ int get_next_token ( Token *token ) {
                 }
 
                 else {
+                    ungetc( c, srcF );
                     token->type = TT_DIV;
                 }
 
-                ds_mem_free( scannerString );
+                ds_free( scannerString );
                 return SCAN_OK;
 
             break;
@@ -542,12 +572,12 @@ int get_next_token ( Token *token ) {
 
                 if (c == '.') {
                     token->type = TT_CON;
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return SCAN_OK;
                 }
 
                 else {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return ERR_LEXICAL;
                 }
 
@@ -560,11 +590,11 @@ int get_next_token ( Token *token ) {
 
                     if (c == '"') {
                         if (!ds_copy( scannerString, token->attribute.string )) {
-                            ds_mem_free( scannerString );
+                            ds_free( scannerString );
                             return ERR_INTERNAL;
                         }
                         token->type = TT_STR;
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return SCAN_OK;
                     }
 
@@ -574,13 +604,13 @@ int get_next_token ( Token *token ) {
 
                     else {
                         if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                         }
                     }
                     
                 } else {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return ERR_LEXICAL;
                 }
 
@@ -593,7 +623,7 @@ int get_next_token ( Token *token ) {
                     if (c == '"') {
                         c = '"';
                         if (!ds_add_next( scannerString, c )) {
-                            ds_mem_free( scannerString );
+                            ds_free( scannerString );
                             return ERR_INTERNAL;
                         }
                         scannerState = SCANNER_STATE_STRING;
@@ -602,7 +632,7 @@ int get_next_token ( Token *token ) {
                     else if (c == 'n') {
                         c = '\n';
                         if (!ds_add_next( scannerString, c )) {
-                            ds_mem_free( scannerString );
+                            ds_free( scannerString );
                             return ERR_INTERNAL;
                         }
                         scannerState = SCANNER_STATE_STRING;
@@ -611,7 +641,7 @@ int get_next_token ( Token *token ) {
                     else if (c == 't') {
                         c = '\t';
                         if (!ds_add_next( scannerString, c )) {
-                            ds_mem_free( scannerString );
+                            ds_free( scannerString );
                             return ERR_INTERNAL;
                         }
                         scannerState = SCANNER_STATE_STRING;
@@ -620,7 +650,7 @@ int get_next_token ( Token *token ) {
                     else if (c == '\\') {
                         c = '\\';
                         if (!ds_add_next( scannerString, c )) {
-                            ds_mem_free( scannerString );
+                            ds_free( scannerString );
                             return ERR_INTERNAL;
                         }
                         scannerState = SCANNER_STATE_STRING;
@@ -642,7 +672,7 @@ int get_next_token ( Token *token ) {
                     }
 
                 } else {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return ERR_INTERNAL;
                 }
 
@@ -661,7 +691,7 @@ int get_next_token ( Token *token ) {
                 }
 
                 else {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return ERR_LEXICAL;
                 }
 
@@ -675,7 +705,7 @@ int get_next_token ( Token *token ) {
                 }
 
                 else {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return ERR_LEXICAL;
                 }
 
@@ -694,7 +724,7 @@ int get_next_token ( Token *token ) {
                 }
 					
                 else {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
 					return ERR_LEXICAL;
                 }
 
@@ -709,7 +739,7 @@ int get_next_token ( Token *token ) {
                     int tmp = (int) strtol( ESstr, &ptr, 10 );
                     c = (char) tmp;
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
 
@@ -717,7 +747,7 @@ int get_next_token ( Token *token ) {
                 }
 
                 else {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return ERR_LEXICAL;
                 }
 
@@ -732,7 +762,7 @@ int get_next_token ( Token *token ) {
                     int tmp = (int) strtol( ESstr, &ptr, 10 );
                     c = (char) tmp;
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
 
@@ -740,7 +770,7 @@ int get_next_token ( Token *token ) {
                 }
 
                 else {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return ERR_LEXICAL;
                 }
 
@@ -755,7 +785,7 @@ int get_next_token ( Token *token ) {
                     int tmp = (int) strtol( ESstr, &ptr, 10 );
                     c = (char) tmp;
                     if (!ds_add_next( scannerString, c )) {
-                        ds_mem_free( scannerString );
+                        ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
 
@@ -763,7 +793,7 @@ int get_next_token ( Token *token ) {
                 }
 
                 else {
-                    ds_mem_free( scannerString );
+                    ds_free( scannerString );
                     return ERR_LEXICAL;
                 }
 
@@ -772,3 +802,4 @@ int get_next_token ( Token *token ) {
         }
     }
 }
+#endif
