@@ -16,11 +16,11 @@ typedef enum {
 
 typedef struct {
 
-    Item_dataType type;     //
-    bool scale;             // 0 = global; 1 = local
-    bool ifdef;             // for functions: 0 = not defined, 1 = defined
-    Dynamic_string *types;  // for function declarations: "input types#output types"
-                            // types are represented so: i - int, d(ouble) - num, s - str, b - bool
+    Item_dataType type;         // 
+    int ifdec;                  // for functions: 0 = not declared, 1 = defined
+    Dynamic_string *inputTypes;
+    Dynamic_string *outputTypes;
+
 } Item_data;
 
 typedef struct {
