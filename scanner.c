@@ -32,7 +32,7 @@ void _dynamic_string ( Dynamic_string *string ) {
  * @param token pointer to token
  * @return 0 in case the token is ok
  */
-int _integer_or_number ( Dynamic_string *str, Token *token ) {
+int _integer_or_floating ( Dynamic_string *str, Token *token ) {
 
     char *ptr;
     
@@ -59,22 +59,31 @@ int _integer_or_number ( Dynamic_string *str, Token *token ) {
  */
 int _keyword_or_id ( Dynamic_string *str, Token *token ) {
 
-    if      (strcmp( str->str, "do" ) == 0) token->attribute.keyword = KW_DO;
+    if      (strcmp( str->str, "integer" ) == 0) token->attribute.keyword = KW_INTEGER;
+    else if (strcmp( str->str, "number" ) == 0) token->attribute.keyword = KW_NUMBER;
+    else if (strcmp( str->str, "string" ) == 0) token->attribute.keyword = KW_STRING;
+    else if (strcmp( str->str, "boolean" ) == 0) token->attribute.keyword = KW_BOOLEAN;
+    else if (strcmp( str->str, "nil" ) == 0) token->attribute.keyword = KW_NIL;
+    else if (strcmp( str->str, "do" ) == 0) token->attribute.keyword = KW_DO;
     else if (strcmp( str->str, "else" ) == 0) token->attribute.keyword = KW_ELSE;
     else if (strcmp( str->str, "end" ) == 0) token->attribute.keyword = KW_END;
     else if (strcmp( str->str, "function" ) == 0) token->attribute.keyword = KW_FUNCTION;
     else if (strcmp( str->str, "global" ) == 0) token->attribute.keyword = KW_GLOBAL;
     else if (strcmp( str->str, "if" ) == 0) token->attribute.keyword = KW_IF;
-    else if (strcmp( str->str, "bool" ) == 0) token->attribute.keyword = KW_BOOL;
-    else if (strcmp( str->str, "integer" ) == 0) token->attribute.keyword = KW_INTEGER;
     else if (strcmp( str->str, "local" ) == 0) token->attribute.keyword = KW_LOCAL;
-    else if (strcmp( str->str, "nil" ) == 0) token->attribute.keyword = KW_NIL;
-    else if (strcmp( str->str, "number" ) == 0) token->attribute.keyword = KW_NUMBER;
     else if (strcmp( str->str, "require" ) == 0) token->attribute.keyword = KW_REQUIRE;
     else if (strcmp( str->str, "return" ) == 0) token->attribute.keyword = KW_RETURN;
-    else if (strcmp( str->str, "string" ) == 0) token->attribute.keyword = KW_STRING;
     else if (strcmp( str->str, "then" ) == 0) token->attribute.keyword = KW_THEN;
     else if (strcmp( str->str, "while" ) == 0) token->attribute.keyword = KW_WHILE;
+
+    else if (strcmp( str->str, "reads" ) == 0) token->attribute.keyword = KW_READS;
+    else if (strcmp( str->str, "raedi" ) == 0) token->attribute.keyword = KW_READI;
+    else if (strcmp( str->str, "readn" ) == 0) token->attribute.keyword = KW_READN;
+    else if (strcmp( str->str, "write" ) == 0) token->attribute.keyword = KW_WRITE;
+    else if (strcmp( str->str, "tointeger" ) == 0) token->attribute.keyword = KW_TOINTEGER;
+    else if (strcmp( str->str, "substr" ) == 0) token->attribute.keyword = KW_SUBSTR;
+    else if (strcmp( str->str, "ord" ) == 0) token->attribute.keyword = KW_ORD;
+    else if (strcmp( str->str, "chr" ) == 0) token->attribute.keyword = KW_CHR;
     
     else token->type = TT_IDE;
     
@@ -102,7 +111,7 @@ int get_next_token ( Token *token ) {
     }
     int scannerState = SCANNER_STATE_START;
     
-    token->type = TT_EMPTY;
+    token->type = TT_NDA;
     token->attribute.string = dynamicString;
 
     Dynamic_string str;
@@ -121,11 +130,7 @@ int get_next_token ( Token *token ) {
 
                 if (c == ' ' || c == '\n') {
                     scannerState = SCANNER_STATE_START;
-                } 
-/* 
-                else if (c == '\n') {
-                    scannerState = SCANNER_STATE_EOL;
-                }  */
+                }
 
                 else if (c >= '1' && c <= '9') {
                     if (!ds_add_next( scannerString, c )) {
@@ -230,18 +235,8 @@ int get_next_token ( Token *token ) {
                     ds_free( scannerString );
                     return ERR_LEXICAL;
                 }
-                break;
-
-            /* case (SCANNER_STATE_EOL):
                 
-                if (c == ' ') break;
-
-                token->type = TT_EOL;
-                ungetc( c, srcF );
-                ds_free( scannerString );
-                return SCAN_OK;
-
-            break; */
+            break;
 
             // NUMBER PROCESSING
             case (SCANNER_STATE_INT):
@@ -272,7 +267,7 @@ int get_next_token ( Token *token ) {
                 else { 
                     ungetc( c, srcF );
                     token->type = TT_INT;
-                    return _integer_or_number( scannerString, token );
+                    return _integer_or_floating( scannerString, token );
                 }
 
             break;
@@ -314,7 +309,7 @@ int get_next_token ( Token *token ) {
                 else { 
                     ungetc( c, srcF );
                     token->type = TT_DOU;
-                    return _integer_or_number( scannerString, token );
+                    return _integer_or_floating( scannerString, token );
                 }
 
             break;
@@ -356,7 +351,7 @@ int get_next_token ( Token *token ) {
                 else {
                     ungetc( c, srcF );
                     token->type = TT_DOU;
-                    return _integer_or_number( scannerString, token );
+                    return _integer_or_floating( scannerString, token );
                 }
                 
             break;
@@ -492,7 +487,7 @@ int get_next_token ( Token *token ) {
                     scannerState = SCANNER_STATE_COMMENT_READ;
                 }
 
-            break; 
+            break;
 
             case (SCANNER_STATE_COMMENT_LSB): // --[
 
