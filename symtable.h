@@ -5,41 +5,44 @@
 
 typedef enum {
 
-    IT_INT,
-    IT_DOU,
-    IT_STR,
-    IT_BOO,
-    IT_NIL,
-    IT_ND,
+    IT_INT,                             // integer
+    IT_DOU,                             // double (number)
+    IT_STR,                             // string
+    IT_BOO,                             // boolean
+    IT_NIL,                             // nil
+    IT_ND,                              // not defined (necessity?)
 
 } Item_dataType;
 
 typedef struct {
 
-    Item_dataType type;         // 
-    int ifdec;                  // for functions: 0 = not declared, 1 = defined
-    Dynamic_string *inputTypes;
-    Dynamic_string *outputTypes;
+    char *id;                           // identifier                   
+    bool ifdec;                         // if function is declared
+    bool ifdef;                         // if function is defined
+    Item_dataType type;                 // data type (for variable)
+    Dynamic_string *inputTypes;         // input types (for function)
+    Dynamic_string *outputTypes;        // output types (for function)
 
 } Item_data;
 
+typedef struct Sym_table_item {
+
+    char *key;                          // identifier
+    Item_data data;                     // item data
+    struct Sym_table_item *leftItem;    // left child
+    struct Sym_table_item *rightItem;   // right child
+
+} *Sym_table_itemPtr;
+
 typedef struct {
 
-    char *key;
-    Item_data data;
-    struct Sym_table_item *leftItem;
-    struct Sym_table_item *rightItem;
-
-} Sym_table_item;
-
-typedef struct {
-
-    Sym_table_item *rootItem;
+    Sym_table_itemPtr rootItem;         // pointer on root node
 
 } Sym_table;
 
 bool st_init ( Sym_table *symTable );
-Sym_table *st_insert ( Sym_table_item *rootItem, Sym_table_item *newItem );
-
+Item_data *st_search (Sym_table_itemPtr rootItem, char *key);
+void st_dispose ( Sym_table_itemPtr rootItem );
+void st_insert ( Sym_table_itemPtr rootItem, Sym_table_itemPtr newItem );
 
 #endif
