@@ -4,31 +4,31 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h> 
+#include <stdbool.h>
 
 #include "string_processor.h"
 
-bool ds_init ( Dynamic_string *cStr ) {
+bool ds_init ( Dynamic_string *str ) {
 
-    if (!(cStr->str = (char *) malloc( DYNAMIC_STR_STARTING_MEM ))) return false; 
+    if (!(str->str = malloc( DYNAMIC_STR_STARTING_MEM ))) return false; 
     
-    cStr->length = 0;
-    cStr->str[cStr->length] = '\0';
-    cStr->size = DYNAMIC_STR_STARTING_MEM;
+    str->length = 0;
+    str->str[str->length] = '\0';
+    str->size = DYNAMIC_STR_STARTING_MEM;
 
     return true;
 
 }
 
-bool ds_add_next ( Dynamic_string *cStr, char c ) {
+bool ds_add_next ( Dynamic_string *str, char c ) {
 
-    if (cStr->length + 2 >= cStr->size) {
-        cStr->size = cStr->length + DYNAMIC_STR_INCREASE_MEM;
-        if (!(cStr->str = (char*) realloc( cStr->str, cStr->size ))) return false;
+    if (str->length + 2 >= str->size) {
+        str->size = str->length + DYNAMIC_STR_INCREASE_MEM;
+        if (!(str->str = realloc( str->str, str->size ))) return false;
     }
 
-    cStr->str[cStr->length++] = c;
-    cStr->str[cStr->length] = '\0';
+    str->str[str->length++] = c;
+    str->str[str->length] = '\0';
 
     return true;
 
@@ -37,7 +37,7 @@ bool ds_add_next ( Dynamic_string *cStr, char c ) {
 bool ds_copy ( Dynamic_string *src, Dynamic_string *dst ) {
 
     if (src->length >= dst->size) {
-        if (!(dst->str = (char*) realloc( dst->str, src->length + 2 ))) return false;
+        if (!(dst->str = realloc( dst->str, src->length + 2 ))) return false;
         dst->size = src->length + 2;
     }
     
@@ -48,8 +48,23 @@ bool ds_copy ( Dynamic_string *src, Dynamic_string *dst ) {
 
 }
 
-void ds_mem_free ( Dynamic_string *cStr ) {
+bool ds_add_str ( Dynamic_string *dynamicStr, char *str) {
 
-    free( cStr->str );
+    if (dynamicStr->length + strlen(str) + 2 >= dynamicStr->size) {
+        dynamicStr->size = dynamicStr->length + strlen(str) + DYNAMIC_STR_INCREASE_MEM;
+        if (!(dynamicStr->str = realloc( dynamicStr->str, dynamicStr->size ))) return false;
+    }
+
+    strcat( dynamicStr->str, str );
+    dynamicStr->length += strlen(str);
+    dynamicStr->str[dynamicStr->length] = '\0';
+
+    return true;
+
+}
+
+void ds_free ( Dynamic_string *str ) {
+
+    free( str->str );
 
 }
