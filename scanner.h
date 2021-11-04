@@ -36,40 +36,48 @@
 #define SCANNER_STATE_ESC_TWO 24                // \2XX
 #define SCANNER_STATE_ESC_ZERO_ZERO 25          // \00X
 #define SCANNER_STATE_ESC_TWO_FIVE 26           // \25X
-#define SCANNER_STATE_ESC_OTHER 28              // 
-#define SCANNER_STATE_ID 29                     // Identifier state
-#define SCANNER_STATE_KW 30                     // Keyword state
-#define SCANNER_STATE_DECL 31                   // Declaration (colon) state
-#define SCANNER_STATE_MT 32                     // More than state
-#define SCANNER_STATE_LT 33                     // Less than state
-#define SCANNER_STATE_MET 34                    // More or equal state
-#define SCANNER_STATE_LET 35                    // Less or equal state
-#define SCANNER_STATE_EQUAL_SIGN 36             // Equal sign -> '=' or "=="
-// TODO : ADD MORE STATES
+#define SCANNER_STATE_ESC_OTHER 27              // 
+#define SCANNER_STATE_ID 28                     // Identifier state
+#define SCANNER_STATE_KW 29                     // Keyword state
+#define SCANNER_STATE_DECL 30                   // Declaration (colon) state
+#define SCANNER_STATE_MT 31                     // More than state
+#define SCANNER_STATE_LT 32                     // Less than state
+#define SCANNER_STATE_MET 33                    // More or equal state
+#define SCANNER_STATE_LET 34                    // Less or equal state
+#define SCANNER_STATE_EQUAL_SIGN 35             // Equal sign -> '=' or "=="
+
+// For dynamic string memory allocation
 #define DYNAMIC_STR_STARTING_MEM 20
 #define DYNAMIC_STR_INCREASE_MEM 10
-
-
 
 // Keywords
 typedef enum {
 
+    KW_INTEGER,             // integer
+    KW_NUMBER,              // number
+    KW_STRING,              // string
+    KW_BOOLEAN,             // boolean
+    KW_NIL,                 // nil
     KW_DO,                  // do
     KW_ELSE,                // else
     KW_END,                 // end 
     KW_FUNCTION,            // function
     KW_GLOBAL,              // global
     KW_IF,                  // if
-    KW_INTEGER,             // integer
     KW_LOCAL,               // local
-    KW_NIL,                 // nil
-    KW_NUMBER,              // number
     KW_REQUIRE,             // require
     KW_RETURN,              // return
-    KW_STRING,              // string
-    KW_BOOL,
     KW_THEN,                // then
     KW_WHILE,               // while
+    // build-in functions
+    KW_READS,               // reads 
+    KW_READI,               // readi 
+    KW_READN,               // readn 
+    KW_WRITE,               // write
+    KW_TOINTEGER,           // tointeger 
+    KW_SUBSTR,              // substr
+    KW_ORD,                 // ord
+    KW_CHR,                 // chr
 
 } Keyword;
 
@@ -86,13 +94,15 @@ typedef union {
 // Types of token
 typedef enum {
 
-    TT_IDE,                 // identifier type
-    TT_KEY,                 // keyword type
-
     TT_INT,                 // integer type
     TT_DOU,                 // double type
     TT_STR,                 // string type
+    TT_BOO,                 // boolean type
     TT_NIL,                 // nil type
+    TT_NDA,                 // not defined
+
+    TT_IDE,                 // identifier type
+    TT_KEY,                 // keyword type
 
     TT_LEN,                 // #
     TT_MUL,                 // *
@@ -114,15 +124,15 @@ typedef enum {
     TT_COL,                 // :
     TT_COM,                 // ,
 
-    TT_EOL,                 // end of line
     TT_EOF,                 // end of file
-    TT_EMPTY,               // empty token
     
 } Token_type;
 // Token structure
 typedef struct {
+
     Token_type type;
     Token_attribute attribute;
+
 } Token;
 
 /** Main function of scanner, scans tokens, changes their parameters, sends them further
