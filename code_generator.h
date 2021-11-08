@@ -16,14 +16,14 @@
     "\n # Reads function"                                               \
     "\n LABEL $reads"                                                   \
     "\n PUSHFRAME"                                                      \
-    "\n DEFVAR LF@%resString"                                           \
+    "\n DEFVAR LF@%retString"                                           \
     "\n DEFVAR LF@tmpChar"                                              \
     "\n DEFVAR LF@nlCheck"                                              \
-    "\n MOVE LF@%resString string@"                                     \
+    "\n MOVE LF@%retString string@"                                     \
     "\n MOVE LF@tmpChar string@"                                        \
                                                                         \
     "\n LABEL $reads$reading"                                           \
-    "\n CONCAT LF@%resString LF@%resString LF@tmpChar"                  \
+    "\n CONCAT LF@%retString LF@%retString LF@tmpChar"                  \
     "\n READ LF@tmpChar string"                                         \
     "\n EQ LF@nlCheck LF@tmpChar string@10"                             \
     "\n JUMPIFEQ $reads$reading LF@nlCheck bool@false"                  \
@@ -37,17 +37,17 @@
     "\n # Readi function"                                               \
     "\n LABEL $readi"                                                   \
     "\n PUSHFRAME"                                                      \
-    "\n DEFVAR LF@%resInteger"                                          \
+    "\n DEFVAR LF@%retInteger"                                          \
     "\n DEFVAR LF@tmpChar"                                              \
     "\n DEFVAR LF@tmpString"                                            \
     "\n DEFVAR LF@irrsignCheck"                                         \
                                                                         \
     "\n LABEL $readi$reading"                                           \
     "\n CONCAT LF@tmpString LF@tmpString LF@tmpChar"                    \
-    "\n LABEL $readi$ignorespaceReading"                                \
+    "\n LABEL $readi$ignoretpaceReading"                                \
     "\n READ LF@tmpChar string"                                         \
     "\n EQ LF@irrsignCheck LF@tmpChar string@32"                        \
-    "\n JUMPIFEQ $readi$ignorespaceReading LF@irrsignCheck bool@true"   \
+    "\n JUMPIFEQ $readi$ignoretpaceReading LF@irrsignCheck bool@true"   \
                                                                         \
     "\n LABEL $readi$convert"                                           \
     "\n "                                                               \
@@ -84,13 +84,13 @@
     "\n # Substr function"                                              \
     "\n LABEL $substr"                                                  \
     "\n PUSHFRAME"                                                      \
-    "\n DEFVAR LF@%resString"                                           \
+    "\n DEFVAR LF@%retString"                                           \
     "\n DEFVAR LF@tmpChar"                                              \
     "\n DEFVAR LF@typeCheck"                                            \
     "\n DEFVAR LF@lngCheck"                                             \
     "\n DEFVAR LF@strLen"                                               \
     "\n DEFVAR LF@index"                                                \
-    "\n MOVE LF@%resString string@"                                     \
+    "\n MOVE LF@%retString string@"                                     \
     "\n STRLEN LF@strLen LF@%0"                                         \
                                                                         \
     "\n EQ LF@typeCheck LF@%0 nil@nil"                                  \
@@ -114,12 +114,12 @@
     "\n GT LF@lngCheck LF@index LF@%2"                                  \
     "\n JUMPIFEQ $substr$ret LF@lngCheck bool@true"                     \
     "\n GETCHAR LF@tmpChar LF@%0 LF@index"                              \
-    "\n CONCAT LF@%resString LF@%resString LF@tmpChar"                  \
+    "\n CONCAT LF@%retString LF@%retString LF@tmpChar"                  \
     "\n ADD LF@index LF@index int@1"                                    \
     "\n JUMP $substr$loop"                                              \
                                                                         \
     "\n LABEL $substr$errRet"                                           \
-    "\n MOVE LF@%resString int@8"                                       \
+    "\n MOVE LF@%retString int@8"                                       \
                                                                         \
     "\n LABEL $substr$ret"                                              \
     "\n POPFRAME"                                                       \
@@ -130,16 +130,16 @@
     "\n # Ord function"                                                 \
     "\n LABEL $ord"                                                     \
     "\n PUSHFRAME"                                                      \
-    "\n DEFVAR LF@%resString"                                           \
+    "\n DEFVAR LF@%retString"                                           \
     "\n DEFVAR LF@lngCheck"                                             \
     "\n DEFVAR LF@strLen"                                               \
     "\n STRLEN LF@strLen LF@%0"                                         \
-    "\n MOVE LF@resString string@"                                      \
+    "\n MOVE LF@retString string@"                                      \
     "\n GT LF@lngCheck int@1 LF@%1"                                     \
     "\n JUMPIFEQ $ord$ret LF@lngCheck bool@true"                        \
     "\n GT LF@lngCheck LF@%1 LF@strLen"                                 \
     "\n JUMPIFEQ $ord$ret LF@lngCheck bool@true"                        \
-    "\n STRI2INT LF@%resString LF@%0 LF@%1"                             \
+    "\n STRI2INT LF@%retString LF@%0 LF@%1"                             \
                                                                         \
     "\n LABEL $ord$ret"                                                 \
     "\n POPFRAME"                                                       \
@@ -150,14 +150,14 @@
     "\n # Chr function"                                                 \
     "\n LABEL $chr"                                                     \
     "\n PUSHFRAME"                                                      \
-    "\n DEFVAR LF@%resInteger"                                          \
+    "\n DEFVAR LF@%retInteger"                                          \
     "\n DEFVAR LF@rngCheck"                                             \
-    "\n MOVE LF@%resInteger string@"                                    \
+    "\n MOVE LF@%retInteger string@"                                    \
     "\n LT LF@rngCheck LF@%0 int@0"                                     \
     "\n JUMPIFEQ $chr$ret LF@rngCheck bool@true"                        \
     "\n GT LF@rngCheck LF@%0 int@255"                                   \
     "\n JUMPIFEQ $chr$ret LF@rngCheck bool@true"                        \
-    "\n INT2CHAR LF@%resInteger LF@%0"                                  \
+    "\n INT2CHAR LF@%retInteger LF@%0"                                  \
                                                                         \
     "\n LABEL $chr$ret"                                                 \
     "\n POPFRAME"                                                       \
@@ -166,10 +166,11 @@
 
 
 
-void cg_start ();
+bool cg_start ();
 
+bool cg_function_header ( char *functionId );
 
-
+bool cg_function_return ( char *functionId );
 
 
 bool cg_clear ();

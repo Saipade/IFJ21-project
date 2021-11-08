@@ -12,11 +12,7 @@
 #include "errorslist.h"
 
 // Pointer to file that will be scanned
-FILE *srcF;  
-
-void _source_file ( FILE *file ) {
-    srcF = file;
-}
+FILE *srcF;
 
 // Dynamic string for token               
 Dynamic_string *dynamicString;
@@ -26,83 +22,6 @@ void _dynamic_string ( Dynamic_string *string ) {
 	dynamicString = string;
 
 }
-
-/** Pre-return number processing
- * @param str dynamic string
- * @param token pointer to token
- * @return 0 in case the token is ok
- */
-int _integer_or_floating ( Dynamic_string *str, Token *token ) {
-
-    char *ptr;
-    
-    if (token->type == TT_INT) {
-        int tmp = (int) strtol( str->str, &ptr, 10 );
-        token->attribute.integer = tmp;
-        ds_free( str );
-        return SCAN_OK;
-    } 
-    
-    else if (token->type == TT_DOU) {
-        double tmp = strtod( str->str, &ptr );
-        token->attribute.floating = tmp;
-        ds_free( str );
-        return SCAN_OK;
-    }
-
-}
-/** Pre-return identifier/keyword processing
- * @param str dynamic string
- * @param token pointer to token
- * @return 0 in case the token is ok
- *         99 in case of internal error
- */
-int _keyword_or_id ( Dynamic_string *str, Token *token ) {
-
-    if      (strcmp( str->str, "integer" ) == 0) token->attribute.keyword = KW_INTEGER;
-    else if (strcmp( str->str, "number" ) == 0) token->attribute.keyword = KW_NUMBER;
-    else if (strcmp( str->str, "string" ) == 0) token->attribute.keyword = KW_STRING;
-    else if (strcmp( str->str, "boolean" ) == 0) token->attribute.keyword = KW_BOOLEAN;
-    else if (strcmp( str->str, "nil" ) == 0) token->attribute.keyword = KW_NIL;
-    else if (strcmp( str->str, "do" ) == 0) token->attribute.keyword = KW_DO;
-    else if (strcmp( str->str, "else" ) == 0) token->attribute.keyword = KW_ELSE;
-    else if (strcmp( str->str, "end" ) == 0) token->attribute.keyword = KW_END;
-    else if (strcmp( str->str, "function" ) == 0) token->attribute.keyword = KW_FUNCTION;
-    else if (strcmp( str->str, "global" ) == 0) token->attribute.keyword = KW_GLOBAL;
-    else if (strcmp( str->str, "if" ) == 0) token->attribute.keyword = KW_IF;
-    else if (strcmp( str->str, "local" ) == 0) token->attribute.keyword = KW_LOCAL;
-    else if (strcmp( str->str, "require" ) == 0) token->attribute.keyword = KW_REQUIRE;
-    else if (strcmp( str->str, "return" ) == 0) token->attribute.keyword = KW_RETURN;
-    else if (strcmp( str->str, "then" ) == 0) token->attribute.keyword = KW_THEN;
-    else if (strcmp( str->str, "while" ) == 0) token->attribute.keyword = KW_WHILE;
-
-    else if (strcmp( str->str, "reads" ) == 0) token->attribute.keyword = KW_READS;
-    else if (strcmp( str->str, "raedi" ) == 0) token->attribute.keyword = KW_READI;
-    else if (strcmp( str->str, "readn" ) == 0) token->attribute.keyword = KW_READN;
-    else if (strcmp( str->str, "write" ) == 0) token->attribute.keyword = KW_WRITE;
-    else if (strcmp( str->str, "tointeger" ) == 0) token->attribute.keyword = KW_TOINTEGER;
-    else if (strcmp( str->str, "substr" ) == 0) token->attribute.keyword = KW_SUBSTR;
-    else if (strcmp( str->str, "ord" ) == 0) token->attribute.keyword = KW_ORD;
-    else if (strcmp( str->str, "chr" ) == 0) token->attribute.keyword = KW_CHR;
-    
-    else token->type = TT_IDE;
-    
-    if (token->type != TT_IDE) {
-        token->type = TT_KEY;
-        ds_free( str );
-        return SCAN_OK;
-    }
-    
-    if (!ds_copy( str, token->attribute.string )) {
-        ds_free( str );
-        return ERR_INTERNAL;
-    }
-
-    ds_free( str );
-    return SCAN_OK;
-
-}
-
 
 int get_next_token ( Token *token ) {
 
@@ -267,7 +186,7 @@ int get_next_token ( Token *token ) {
                 else { 
                     ungetc( c, srcF );
                     token->type = TT_INT;
-                    return _integer_or_floating( scannerString, token );
+                    return _integer_or_number( scannerString, token );
                 }
 
             break;
@@ -309,7 +228,7 @@ int get_next_token ( Token *token ) {
                 else { 
                     ungetc( c, srcF );
                     token->type = TT_DOU;
-                    return _integer_or_floating( scannerString, token );
+                    return _integer_or_number( scannerString, token );
                 }
 
             break;
@@ -351,7 +270,7 @@ int get_next_token ( Token *token ) {
                 else {
                     ungetc( c, srcF );
                     token->type = TT_DOU;
-                    return _integer_or_floating( scannerString, token );
+                    return _integer_or_number( scannerString, token );
                 }
                 
             break;

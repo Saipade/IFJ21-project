@@ -7,24 +7,44 @@
 #include "scanner.c"
 #include "errorslist.h"
 #include "string_processor.c"
+#include "parser.c"
 
 FILE *srcF;
 
-int main(int argc, char *argv[]) {
+/* typedef struct {
 
-    srcF = fopen( argv[1], "r+" );
-    
     Token token;
-    Token *ptr = &token;
 
-    Dynamic_string dynamicString;
-    if (!ds_init( &dynamicString )) return ERR_INTERNAL;
-    set_dynamic_string( &dynamicString );
-                                                // что тестируем: scanner.c
-    int err = get_next_token( &token );         // тестировать ВСЕ виды токенов (создаешь текстовый файл в папке с тестируемым типом токена) -> пишешь main.exe *filename*.txt
-                                                // особенно тестировать escape sequence (см. задание проекта)
-    printf("(%d %d)\n", token.type, err);       // затем выписываешь его тестируемые хар-ки (см. структуру токена в scanner.h)
+} Parser_data;
+
+int check_prologue ( Parser_data *parserData) {
+
+    int tmp;
+    if (tmp = get_next_token( &parserData->token ) != SCAN_OK) return tmp;
+    printf( "(%d %d)\n", parserData->token.type, parserData->token.attribute.keyword);
+    if (parserData->token.type != TT_KEY) return ERR_SYNTAX;
+    if (tmp = get_next_token( &parserData->token )) return tmp;
+    if (strcmp(parserData->token.attribute.string->str, "ifj21")) return ERR_SYNTAX;
+    printf( "(%d %s)\n", parserData->token.type, parserData->token.attribute.string->str);
+    return true;
+ 
+}
+
+bool parser_data_init ( Parser_data *parserData ) {
+
     
+    return true;
+
+} */
+
+
+
+int main( int argc, char *argv[] ) {
+
+    srcF = fopen( argv[1], "r");
+    
+    parse (  );
+
 
     return 0;
 }

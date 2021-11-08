@@ -1,4 +1,12 @@
-//
+/**
+ *  PROJECT: Implementation of imperative language translator (IFJ21)
+ *  PART: RECURSIVE TOP-DOWN PARSER
+ *
+ *  AUTHOR(S): xtikho00, Maksim Tikhonov
+ * 
+ * 
+ * 
+*/
 #ifndef PARSER_C
 #define PARSER_C
 
@@ -49,11 +57,6 @@ int get_next_token_and_apply_rule ( Parser_data *parserData, char *rulename ) {
 
 }
 
-
-
-
-
-
 bool parser_data_init ( Parser_data *parserData ) {
 
     int res;
@@ -76,9 +79,7 @@ bool parser_data_init ( Parser_data *parserData ) {
     parserData->whereAmI = 0;
     
     // symTable[0] - global table; all others are local ones
-    for (int i = 0; i < 10; i++) {
-        st_init( &parserData->symTable[i] );
-    }
+    st_init( &parserData->symTable[0] );
 
     // built-in functions
     Item_data *tmp;
@@ -154,9 +155,9 @@ int parse (  ) {
     // general rule: 
     // <program> -> <prologue>.<function list>
     // <prologue>
-    if (res = rule_prologue( parserData )) return res;
+    if (res = rule_prologue( &pData )) return res;
     // <function list>
-    if (res = rule_functionList( parserData )) return res;
+    if (res = rule_functionList( &pData )) return res;
 
     printf( "%d\n", res );
 
@@ -164,7 +165,7 @@ int parse (  ) {
 
 }
 
-/*........................................ TOP-DOWN PARSER (RECURSIVE) ........................................ */
+/*........................................ RECURSIVE TOP-DOWN PARSER ........................................ */
 
 /**
  * <prologue> -> require "ifj21"
@@ -225,35 +226,37 @@ int rule_functionList ( Parser_data *parserData ) {
     // <function definition> -> FUNCTION ID (<param list type 2>) : <param list type 3> <statement list> END . <function list>
     } else if (parserData->token.attribute.keyword == KW_FUNCTION) {                            // FUNCTION
 
-        
         if (res = get_next_token_and_check_type( parserData, TT_IDE )) return res;              // ID
 
         parserData->currentId = st_search( parserData->symTable[0].rootItem, parserData->token.attribute.string->str );
         if (parserData->currentId == NULL || parserData->currentId->ifdef == 0) {
             parserData->currentId = st_add_id( &parserData->symTable[0], parserData->token.attribute.string->str );
             if (!&parserData->currentId) return ERR_INTERNAL;
-            parserData->currentId->ifdef = 1;
-            parserData->currentId->ifdec = 1;
         }
         else return ERR_SEMANTIC_UNDEF_VAR;
-        // generate function label code
-        cg_function_label( parserData->currentId->id );
+
+        parserData->currentId->ifdef = 1;
+        parserData->currentId->ifdec = 1;
         
+        // generate function header code
+        cg_function_header( parserData->currentId->id );
+
         if (res = get_next_token_and_check_type( parserData, TT_LBR )) return res;              // (
         
         parserData->currentDepth++;
+        st_init( &parserData->symTable[parserData->currentDepth] );
         parserData->whereAmI = 2;
         if (res = get_next_token_and_apply_rule( parserData, "rule_paramList" )) return res;    // <param list type 2>
-        
-        printf( "(%d -)\n", parserData->token.type );
-        if (parserData->token.type != TT_RBR) return ERR_SYNTAX;
+         
+        if (parserData->token.type != TT_RBR) return ERR_SYNTAX;                                // )
 
-        if (res = get_next_token_and_check_type( parserData, TT_RBR )) return res;              // )
+        if (res = get_next_token_and_check_type( parserData, TT_COL )) return res;              // :
 
         parserData->whereAmI = 3;
         if (res = get_next_token_and_apply_rule( parserData, "rule_paramList" )) return res;    // <param list type 3>
         
         if (res = rule_statementList( parserData )) return res;                                 // <statement list>
+        st_dispose( parserData->symTable[parserData->currentDepth].rootItem );
         parserData->currentDepth--;
 
         if (res = get_next_token_and_check_keyword( parserData, KW_END )) return res;           // END
@@ -279,21 +282,26 @@ int rule_functionList ( Parser_data *parserData ) {
 int rule_paramList ( Parser_data *parserData ) {
 
     int res;
-    // if there is declared function or variable in the same context lvl with current identifier's name 
+    // if there is declared function or variable in the same context lvl with same identifier
     if (parserData->token.type == TT_IDE && st_search( parserData->symTable[0].rootItem, parserData->token.attribute.string->str ) != NULL
     && st_search( parserData->symTable[parserData->currentDepth].rootItem, parserData->token.attribute.string->str ) != NULL)
         return ERR_SEMANTIC_UNDEF_VAR;
 
     if (parserData->token.type == TT_IDE || parserData->token.type == TT_KEY) {
-        // <param> -> TYPE, (in function declaration - input types)
+        // <param> -> TYPE, (in function header: case 1: input types; case 2: output types)
         if (parserData->whereAmI == 1 || parserData->whereAmI == 3) { 
 
             if (parserData->token.type == TT_IDE) return ERR_SYNTAX;                            // TYPE
 
-            if (parserData->whereAmI == 1) if (res = st_add_param( parserData->currentId->inputTypes, parserData->token.attribute.keyword )) return res;
-            if (parserData->whereAmI == 3) if (res = st_add_param( parserData->currentId->outputTypes, parserData->token.attribute.keyword )) return res;
+            if      (parserData->whereAmI == 1) {
+                if (res = st_add_param( parserData->currentId->inputTypes, parserData->token.attribute.keyword )) return res;
+            }
+            else if (parserData->whereAmI == 3) {
+                if (res = st_add_param( parserData->currentId->outputTypes, parserData->token.attribute.keyword )) return res;
+                cg_function_output_type( parserData->token.attribute.keyword, parserData->currentId->outputTypes->length - 1 );
+            }
 
-            if (res = get_next_token( &parserData->token )) return res;                         // ,    
+            if (res = get_next_token_and_check_type( parserData, TT_COM )) return res;          // ,    
 
         }
         // <param> -> ID : TYPE, (in function defenition)
@@ -307,8 +315,9 @@ int rule_paramList ( Parser_data *parserData ) {
             if (res = get_next_token( &parserData->token )) return res;                         // TYPE
 
             if (res = st_add_type( &parserData->token, parserData->auxId )) return res;
-            
-            if (res = get_next_token( &parserData->token )) return res;                         // ,
+            cg_function_input_type( parserData->currentId, parserData->token.attribute.keyword, parserData->currentId->inputTypes->length );
+
+            if (res = get_next_token_and_check_type( parserData, TT_COM )) return res;          // ,
 
         }
 
@@ -339,10 +348,7 @@ int rule_statementList ( Parser_data *parserData ) {
     // <ID list> = ID (function with many output types)
     if (parserData->token.type == TT_IDE) {
         
-
-        while (parserData->token.type != TT_EQU) { // all IDs to array of tokens
-            get_next_token( &parserData->token );
-        }
+        
 
 
 
@@ -351,6 +357,7 @@ int rule_statementList ( Parser_data *parserData ) {
 
     }
     // <statement> -> LOCAL ID : TYPE = <value> . <statement list>
+    // <statement> -> LOCAL ID : TYPE . <statement list>
     else if (parserData->token.attribute.keyword == KW_LOCAL) {                                 // LOCAL
 
         if (res = get_next_token_and_check_type( parserData, TT_IDE )) return res;              // ID
@@ -362,8 +369,8 @@ int rule_statementList ( Parser_data *parserData ) {
         if (res = get_next_token_and_check_type( parserData, TT_COL )) return res;              // :
         if (res = get_next_token_and_check_type( parserData, TT_KEY )) return res;              // TYPE
         if (res = st_add_type( &parserData->token, parserData->currentId )) return res;
-        if (res = get_next_token( &parserData->token )) return res;
-
+        if (res = get_next_token( &parserData->token )) return res;                             // 
+        
         if (parserData->token.type == TT_EQU)                                                   // <value>
             if (res = get_next_token_and_apply_rule( parserData, "rule_Value" )) return res;
         return rule_statementList( parserData );                                                // <statement list>

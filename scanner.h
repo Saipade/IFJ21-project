@@ -8,47 +8,52 @@
 
 #include "string_processor.h"
 
-// Scanner states
-#define SCANNER_STATE_START 0                   // Starting state
-#define SCANNER_STATE_EOL 1                     // EOL state
-#define SCANNER_STATE_TILD 2                    // Tilda; encountering '=' leads to TT_NEQ
-#define SCANNER_STATE_FIRST_DASH 3              // Might be either minus operator or start of comment
-#define SCANNER_STATE_SLASH 4                   // Slash
-#define SCANNER_STATE_COMMENT_LINE 5            // 
-#define SCANNER_STATE_COMMENT_READ 6            // Skipping line comment
-#define SCANNER_STATE_COMMENT_LSB 7             // First square bracket after double dash
-#define SCANNER_STATE_COMMENTBLOCK 8            // Start of commentary block
-#define SCANNER_STATE_COMMENTBLOCK_EXIT 9       // exit?
-#define SCANNER_STATE_INT 10                    // Integer state; can be converted either to _DOUBLE after encountering _POINT or _EXP after encountering e(E) or remain _INT
-#define SCANNER_STATE_EXP 11                    // e(E) found; can be converted either to 
-#define SCANNER_STATE_EXP_NUM 12                // exp -> num
-#define SCANNER_STATE_EXP_SIGN 13               // exp -> sign -> num
-#define SCANNER_STATE_POINT 14                  // Point found, next state -- _DOUBLE
-#define SCANNER_STATE_DOUBLE 15                 // Double type state
-#define SCANNER_STATE_HASHTAG 16                // Hashtag state
-#define SCANNER_STATE_LENGTH 17                 // Get length state
-#define SCANNER_STATE_DOT 18                    // Dot state -> conc. state
-#define SCANNER_STATE_CONC 19                   // Concatenation state
-#define SCANNER_STATE_STRING 20                 // String state
-#define SCANNER_STATE_ESC_SEQ 21                // Escape sequence state
-#define SCANNER_STATE_ESC_ZERO 22               // \0XX
-#define SCANNER_STATE_ESC_ONE 23                // \1XX
-#define SCANNER_STATE_ESC_TWO 24                // \2XX
-#define SCANNER_STATE_ESC_ZERO_ZERO 25          // \00X
-#define SCANNER_STATE_ESC_TWO_FIVE 26           // \25X
-#define SCANNER_STATE_ESC_OTHER 27              // 
-#define SCANNER_STATE_ID 28                     // Identifier state
-#define SCANNER_STATE_KW 29                     // Keyword state
-#define SCANNER_STATE_DECL 30                   // Declaration (colon) state
-#define SCANNER_STATE_MT 31                     // More than state
-#define SCANNER_STATE_LT 32                     // Less than state
-#define SCANNER_STATE_MET 33                    // More or equal state
-#define SCANNER_STATE_LET 34                    // Less or equal state
-#define SCANNER_STATE_EQUAL_SIGN 35             // Equal sign -> '=' or "=="
-
 // For dynamic string memory allocation
 #define DYNAMIC_STR_STARTING_MEM 20
 #define DYNAMIC_STR_INCREASE_MEM 10
+
+
+// Scanner states
+typedef enum {
+
+    SCANNER_STATE_START,                    // Starting state
+    SCANNER_STATE_EOL,                      // EOL state
+    SCANNER_STATE_TILD,                     // Tilda; encountering '=' leads to TT_NEQ
+    SCANNER_STATE_FIRST_DASH,               // Might be either minus operator or start of comment
+    SCANNER_STATE_SLASH,                    // Slash
+    SCANNER_STATE_COMMENT_LINE,             // 
+    SCANNER_STATE_COMMENT_READ,             // Skipping line comment
+    SCANNER_STATE_COMMENT_LSB,              // First square bracket after double dash
+    SCANNER_STATE_COMMENTBLOCK,             // Start of commentary block
+    SCANNER_STATE_COMMENTBLOCK_EXIT,        // exit?
+    SCANNER_STATE_INT,                      // Integer state; can be converted either to _DOUBLE after encountering _POINT or _EXP after encountering e(E) or remain _INT
+    SCANNER_STATE_EXP,                      // e(E) found; can be converted either to 
+    SCANNER_STATE_EXP_NUM,                  // exp -> num
+    SCANNER_STATE_EXP_SIGN,                 // exp -> sign -> num
+    SCANNER_STATE_POINT,                    // Point found, next state -- _DOUBLE
+    SCANNER_STATE_DOUBLE,                   // Double type state
+    SCANNER_STATE_HASHTAG,                  // Hashtag state
+    SCANNER_STATE_LENGTH,                   // Get length state
+    SCANNER_STATE_DOT,                      // Dot state -> conc. state
+    SCANNER_STATE_CONC,                     // Concatenation state
+    SCANNER_STATE_STRING,                   // String state
+    SCANNER_STATE_ESC_SEQ,                  // Escape sequence state
+    SCANNER_STATE_ESC_ZERO,                 // \0XX
+    SCANNER_STATE_ESC_ONE,                  // \1XX
+    SCANNER_STATE_ESC_TWO,                  // \2XX
+    SCANNER_STATE_ESC_ZERO_ZERO,            // \00X
+    SCANNER_STATE_ESC_TWO_FIVE,             // \25X
+    SCANNER_STATE_ESC_OTHER,                // 
+    SCANNER_STATE_ID,                       // Identifier state
+    SCANNER_STATE_KW,                       // Keyword state
+    SCANNER_STATE_DECL,                     // Declaration (colon) state
+    SCANNER_STATE_MT,                       // More than state
+    SCANNER_STATE_LT,                       // Less than state
+    SCANNER_STATE_MET,                      // More or equal state
+    SCANNER_STATE_LET,                      // Less or equal state
+    SCANNER_STATE_EQUAL_SIGN,               // Equal sign -> '=' or "=="
+
+} scannerState;
 
 // Keywords
 typedef enum {
