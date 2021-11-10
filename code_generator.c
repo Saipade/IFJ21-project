@@ -1,23 +1,31 @@
 /*
 
 */
-#include <string.h>
+
 #include "code_generator.h"
 #include "scanner.h"
 #include "string_processor.h"
 #include "symtable.h"
 
-Dynamic_string *resultString;
+#include <string.h>
+
+Dynamic_string *codeString;
+
+void _code_string ( Dynamic_string *string ) {
+
+    codeString = string;
+
+}
 
 // Append string to result code
 #define ADD_CODE(CODE)														\
-	if (!ds_add_str(resultString, (CODE))) return false
+	if (!ds_add_chars( codeString, CODE )) return false
 
 
 // Append string with \n to result code
 #define ADD_LINE(CODE)														\
-	if (!ds_add_str(resultString, (CODE))) return false;					\
-	if (!ds_add_str(resultString, "\n")) return false;
+	if (!ds_add_chars( codeString, CODE )) return false;					\
+	if (!ds_add_chars( codeString, "\n" )) return false;
 
 bool cg_start (  ) {
 
@@ -57,9 +65,9 @@ bool cg_function_header ( char *functionId ) {
 
 }
 
-bool cg_function_input_type ( char *inputId, Item_dataType dataType, int index ) {
+bool cg_function_input_type ( char *inputId, Data_type dataType, int index ) {
 
-    char *strIndex[32];
+    char strIndex[32];
     sprintf( strIndex, "%d", index );
     // declare variable inputId
     ADD_CODE( "DEFVAR LF@");
@@ -75,9 +83,9 @@ bool cg_function_input_type ( char *inputId, Item_dataType dataType, int index )
 }
 
 
-bool cg_function_output_type ( Item_dataType dataType, int index ) {
+bool cg_function_output_type ( Data_type dataType, int index ) {
     
-    char *strIndex[32];
+    char strIndex[32];
     sprintf( strIndex, "%d", index );
     // declare output variable
     ADD_CODE( "DEFVAR LF@%output");
@@ -133,35 +141,35 @@ bool cg_call ( char *functionId ) {
 
 /* .......................................... AUXILLIARY FUNCTIONS .......................................... */
 
-bool cg_process_data_type ( Item_dataType dataType ) {
+bool cg_process_data_type ( Data_type dataType ) {
 
     switch (dataType) {
 
-        case (IT_INT):
+        case (T_INT):
 
             ADD_CODE( "int@0");
 
         break;
 
-        case (IT_DOU): 
+        case (T_DOU): 
 
             ADD_CODE( "float@0.0");
 
         break;
 
-        case (IT_STR):
+        case (T_STR):
 
             ADD_CODE( "string@" );
 
         break;
 
-        case (IT_BOO):
+        case (T_BOO):
 
             ADD_CODE( "bool@false");
 
         break;
 
-        case (IT_NIL):
+        case (T_NIL):
 
             ADD_CODE( "nil@nil" );
 

@@ -2,12 +2,12 @@
 
 */
 
-#include <stdlib.h>
-
 #include "scanner.c"
 #include "errorslist.h"
 #include "string_processor.c"
 #include "parser.c"
+
+#include <stdlib.h>
 
 FILE *srcF;
 

@@ -1,3 +1,7 @@
+/*
+
+*/
+
 #ifndef SCANNER_H
 #define SCANNER_H
 
@@ -18,7 +22,7 @@ typedef enum {
 
     SCANNER_STATE_START,                    // Starting state
     SCANNER_STATE_EOL,                      // EOL state
-    SCANNER_STATE_TILD,                     // Tilda; encountering '=' leads to TT_NEQ
+    SCANNER_STATE_TILD,                     // Tilda; encountering '=' leads to T_NEQ
     SCANNER_STATE_FIRST_DASH,               // Might be either minus operator or start of comment
     SCANNER_STATE_SLASH,                    // Slash
     SCANNER_STATE_COMMENT_LINE,             // 
@@ -99,43 +103,45 @@ typedef union {
 // Types of token
 typedef enum {
 
-    TT_INT,                 // integer type
-    TT_DOU,                 // double type
-    TT_STR,                 // string type
-    TT_BOO,                 // boolean type
-    TT_NIL,                 // nil type
-    TT_NDA,                 // not defined
+    T_INT,                  // integer type
+    T_DOU,                  // double type
+    T_STR,                  // string type
+    T_BOO,                  // boolean type
+    T_NIL,                  // nil type
+    T_NDA,                  // not defined
 
-    TT_IDE,                 // identifier type
-    TT_KEY,                 // keyword type
+    T_IDE,                  // identifier type
+    T_KEY,                  // keyword type
 
-    TT_LEN,                 // #
-    TT_MUL,                 // *
-    TT_DIV,                 // /
-    TT_IDI,                 // //
-    TT_ADD,                 // +
-    TT_SUB,                 // -
-    TT_CON,                 // ..
-    TT_LTH,                 // less than
-    TT_LET,                 // less or equal than
-    TT_MTH,                 // more than
-    TT_MET,                 // more or equal than
-    TT_EQU,                 // equal
-    TT_NEQ,                 // not equal
-    TT_IEQ,                 // equal for if conditions
+    T_LEN,                  // #
+    T_MUL,                  // *
+    T_DIV,                  // /
+    T_IDI,                  // //
+    T_ADD,                  // +
+    T_SUB,                  // -
+    T_CON,                  // ..
+    T_LTH,                  // <
+    T_LET,                  // <=
+    T_MTH,                  // >
+    T_MET,                  // >=
+    T_EQU,                  // =
+    T_NEQ,                  // ~=
+    T_IEQ,                  // ==
 
-    TT_LBR,                 // (
-    TT_RBR,                 // )
-    TT_COL,                 // :
-    TT_COM,                 // ,
+    T_LBR,                  // (
+    T_RBR,                  // )
+    T_COL,                  // :
+    T_COM,                  // ,
 
-    TT_EOF,                 // end of file
+    T_EOF,                  // end of file
+
+    T_DOL,                  // $
     
-} Token_type;
+} Data_type;
 // Token structure
 typedef struct {
 
-    Token_type type;
+    Data_type type;
     Token_attribute attribute;
 
 } Token;

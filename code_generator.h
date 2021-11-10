@@ -172,6 +172,7 @@ bool cg_function_header ( char *functionId );
 
 bool cg_function_return ( char *functionId );
 
+bool cg_process_data_type ( Data_type dataType );
 
 bool cg_clear ();
 

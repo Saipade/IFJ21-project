@@ -4,6 +4,7 @@
 #ifndef STRING_PROCESSOR_H
 #define STRING_PROCESSOR_H
 
+#include "scanner.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -37,7 +38,7 @@ bool ds_init ( Dynamic_string *cStr );
  * @param c character that will be added
  * @return
  */
-bool ds_add_next ( Dynamic_string *str, char s );
+bool ds_add_char ( Dynamic_string *str, char s );
 
 /** 
  * Copies string from one dynamic string to another 
@@ -62,19 +63,6 @@ bool ds_add_str ( Dynamic_string *dynamicStr, char *str);
  */
 void ds_free ( Dynamic_string *cStr );
 
-/** Pre-return number processing
- * @param str dynamic string
- * @param token pointer to token
- * @return 0 in case the token is ok
- */
-int _integer_or_number ( Dynamic_string *str, Token *token );
 
-/** Pre-return identifier/keyword processing
- * @param str dynamic string
- * @param token pointer to token
- * @return 0 in case the token is ok
- *         99 in case of internal error
- */
-int _keyword_or_id ( Dynamic_string *str, Token *token );
 
 #endif
