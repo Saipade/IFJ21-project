@@ -29,30 +29,33 @@ void s_push ( Stack *stack, Data_type data ) {
 
 void s_push_after_terminal ( Stack *stack, Data_type data ) {
 
-    return true;
+    return true;//what is it???
 
 }
 
 void s_pop ( Stack *stack ) {
 
-    Stack_item *toPop = stack->top;
-    stack->top = stack->top->nextItem;
-    free( toPop );
+    if(s_is_empty(stack){
+        //call error code
+        return;
+    }else{
+        stack->top--;
 
 }
 
-Stack_item *s_top ( Stack *stack ) {
+Data_type *s_top ( Stack *stack ) {
 
-    return stack->top;
+    if(s_is_empty(stack){
+        //call error code
+        return;
+    }
+       
+    return stack->data[stack->top];
 
 }
 
 void s_dispose ( Stack *stack ) {
 
-    while (stack->top) {
-
-        s_pop( stack );       
-
-    }
+    free(stack);
 
 }
