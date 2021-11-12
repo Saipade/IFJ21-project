@@ -20,7 +20,7 @@
  */
 typedef struct {
     
-    Data_type data;
+    Data_type data[MAX_STACK];
     
     int top;
 
