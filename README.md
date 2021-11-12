@@ -13,4 +13,5 @@ http://ce.sharif.edu/courses/94-95/1/ce414-2/resources/root/Text%20Books/Compile
 main.c
 
 scanner.h scanner.c
-  
+
+parser.h parser.c
