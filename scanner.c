@@ -630,7 +630,7 @@ int get_next_token ( Token *token ) {
 
                     if (c == '"') {
                         c = '"';
-                        if (!ds_add_char( scannerString, c )) {
+                        if  (!ds_add_char( scannerString, c )) {
                             ds_free( scannerString );
                             return ERR_INTERNAL;
                         }
