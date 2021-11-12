@@ -14,6 +14,6 @@ main.c
 
 scanner.h scanner.c -- help files: string_processor.h string_processor.c
 
-parser.h parser.c
+parser.h parser.c -- help files: stack.h stack.c
 
-code_generator.h code_generator.c
+code_generator.h code_generator.c -- help files: symtable.h symtable.c
