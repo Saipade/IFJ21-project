@@ -35,6 +35,11 @@ void s_init ( Stack *stack );
  */
 void s_push ( Stack *stack, Data_type data );
 
+
+
+
+bool s_is_full(Stack *stack);
+
 /**
  * 
  */
