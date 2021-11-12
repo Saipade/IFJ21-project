@@ -13,5 +13,8 @@ http://ce.sharif.edu/courses/94-95/1/ce414-2/resources/root/Text%20Books/Compile
 main.c
 
 scanner.h scanner.c
+  string_processor.h string_processor.c
 
 parser.h parser.c
+
+code_generator.h code_generator.c
