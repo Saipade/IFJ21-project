@@ -8,18 +8,22 @@
 
 void s_init ( Stack *stack ) {
 
-    stack->top = NULL;
+    if(stack == NULL){
+        //call error 
+        return;
+    }
+    stack->top = -1;
 
 }
 
 void s_push ( Stack *stack, Data_type data ) {
 
-    Stack_item *newItem = malloc( sizeof ( Stack_item ) );
-    if (!newItem) return false;
-
-    newItem->data = data;
-    newItem->nextItem = stack->top;
-    stack->top = newItem;
+    if(s_is_full(stack)){
+        //call error code
+        return;
+    }
+    stack->top++;
+    stack->data[stack->top] = data;
     
 }
 
