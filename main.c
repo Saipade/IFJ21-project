@@ -42,7 +42,6 @@ bool parser_data_init ( Parser_data *parserData ) {
 int main( int argc, char *argv[] ) {
 
     srcF = fopen( argv[1], "r");
-    
     parse (  );
 
 

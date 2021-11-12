@@ -37,7 +37,7 @@ int _integer_or_number ( Dynamic_string *str, Token *token ) {
 
     } 
     
-    else if (token->type == T_DOU) {
+    else if (token->type == T_NUM) {
 
         double tmp = strtod( str->str, &ptr );
         token->attribute.floating = tmp;
@@ -58,7 +58,7 @@ int _keyword_or_id ( Dynamic_string *str, Token *token ) {
     if      (strcmp( str->str, "integer" ) == 0) token->attribute.keyword = KW_INTEGER;
     else if (strcmp( str->str, "number" ) == 0) token->attribute.keyword = KW_NUMBER;
     else if (strcmp( str->str, "string" ) == 0) token->attribute.keyword = KW_STRING;
-    else if (strcmp( str->str, "boolean" ) == 0) token->attribute.keyword = KW_BOOLEAN;
+    //else if (strcmp( str->str, "boolean" ) == 0) token->attribute.keyword = KW_BOOLEAN;
     else if (strcmp( str->str, "nil" ) == 0) token->attribute.keyword = KW_NIL;
     else if (strcmp( str->str, "do" ) == 0) token->attribute.keyword = KW_DO;
     else if (strcmp( str->str, "else" ) == 0) token->attribute.keyword = KW_ELSE;
@@ -125,21 +125,23 @@ int get_next_token ( Token *token ) {
     Dynamic_string *scannerString = &str;
     if (!ds_init( scannerString )) return ERR_INTERNAL;
     
-    char ESstr[3], c;
+    char ESstr[4], c;
     
     while (true) {
 
-        c = (char) getc( srcF );
+        c = getc( srcF );
 
         switch (scannerState) {
 
             case (SCANNER_STATE_START):
 
-                if (c == ' ' || c == '\n') {
+                if (c == ' ' || c == '\n' || c == '\t') {
+                    if (c == '\n')
+                    printf("\n");
                     scannerState = SCANNER_STATE_START;
                 }
 
-                else if (c >= '1' && c <= '9') {
+                else if (c >= '0' && c <= '9') {
                     if (!ds_add_char( scannerString, c )) {
                         ds_free( scannerString );
                         return ERR_INTERNAL;
@@ -248,7 +250,11 @@ int get_next_token ( Token *token ) {
             // NUMBER PROCESSING
             case (SCANNER_STATE_INT):
 
-                if (c >= '0' && c <= '9') {
+                if      (scannerString->str[0] == '0' && (c >= '0' && c <= '9')) {
+                    return ERR_SYNTAX;
+                }
+
+                else if (c >= '0' && c <= '9') {
                     if (!ds_add_char( scannerString, c )) {
                         ds_free( scannerString );
                         return ERR_INTERNAL;
@@ -315,7 +321,7 @@ int get_next_token ( Token *token ) {
 
                 else { 
                     ungetc( c, srcF );
-                    token->type = T_DOU;
+                    token->type = T_NUM;
                     return _integer_or_number( scannerString, token );
                 }
 
@@ -357,7 +363,7 @@ int get_next_token ( Token *token ) {
 
                 else {
                     ungetc( c, srcF );
-                    token->type = T_DOU;
+                    token->type = T_NUM;
                     return _integer_or_number( scannerString, token );
                 }
                 
@@ -480,7 +486,7 @@ int get_next_token ( Token *token ) {
             break;
 
             case (SCANNER_STATE_COMMENT_LINE): // --
-
+            
                 if (c == '[') {
                     scannerState = SCANNER_STATE_COMMENT_LSB;
                 }
@@ -573,7 +579,7 @@ int get_next_token ( Token *token ) {
             case (SCANNER_STATE_DOT):
 
                 if (c == '.') {
-                    token->type = T_CON;
+                    token->type = T_CAT;
                     ds_free( scannerString );
                     return SCAN_OK;
                 }
@@ -701,7 +707,7 @@ int get_next_token ( Token *token ) {
             
             case (SCANNER_STATE_ESC_ONE):
 
-                if (c >= '1' && c <= '9') {
+                if (c >= '0' && c <= '9') {
                     ESstr[1] = c;
                     scannerState = SCANNER_STATE_ESC_OTHER;
                 }
@@ -715,7 +721,7 @@ int get_next_token ( Token *token ) {
 
             case (SCANNER_STATE_ESC_TWO):
 
-                if (c == '0' || c == '1' || c == '2' || c == '3' || c == '4') {
+                if (c >= '0' && c <= '4') {
                     ESstr[1] = c;
                     scannerState = SCANNER_STATE_ESC_OTHER;
                 }
@@ -780,7 +786,7 @@ int get_next_token ( Token *token ) {
 
             case (SCANNER_STATE_ESC_TWO_FIVE):
 
-                if (c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5') {
+                if (c >= '0' && c <= '5') {
                     ESstr[2] = c;
 
                     char *ptr;

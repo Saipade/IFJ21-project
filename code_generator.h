@@ -10,154 +10,153 @@
 #include <stdbool.h>
 
 // Definition of built-in functions
-// TOTEST
+
 // function reads() : string
 #define FUNCTION_READS                                                  \
     "\n # Reads function"                                               \
     "\n LABEL $reads"                                                   \
     "\n PUSHFRAME"                                                      \
-    "\n DEFVAR LF@%retString"                                           \
-    "\n DEFVAR LF@tmpChar"                                              \
-    "\n DEFVAR LF@nlCheck"                                              \
-    "\n MOVE LF@%retString string@"                                     \
-    "\n MOVE LF@tmpChar string@"                                        \
-                                                                        \
-    "\n LABEL $reads$reading"                                           \
-    "\n CONCAT LF@%retString LF@%retString LF@tmpChar"                  \
-    "\n READ LF@tmpChar string"                                         \
-    "\n EQ LF@nlCheck LF@tmpChar string@10"                             \
-    "\n JUMPIFEQ $reads$reading LF@nlCheck bool@false"                  \
+    "\n DEFVAR LF@%retval"                                              \
+    "\n READ LF@%retval string"                                         \
                                                                         \
     "\n LABEL $reads$ret"                                               \
     "\n POPFRAME"                                                       \
     "\n RETURN"                                                 
-// TODO
+
 // function readi() : integer
 #define FUNCTION_READI                                                  \
     "\n # Readi function"                                               \
     "\n LABEL $readi"                                                   \
     "\n PUSHFRAME"                                                      \
-    "\n DEFVAR LF@%retInteger"                                          \
-    "\n DEFVAR LF@tmpChar"                                              \
-    "\n DEFVAR LF@tmpString"                                            \
-    "\n DEFVAR LF@irrsignCheck"                                         \
+    "\n DEFVAR LF@%retval"                                              \
+    "\n READ LF@%retval int"                                            \
                                                                         \
-    "\n LABEL $readi$reading"                                           \
-    "\n CONCAT LF@tmpString LF@tmpString LF@tmpChar"                    \
-    "\n LABEL $readi$ignoretpaceReading"                                \
-    "\n READ LF@tmpChar string"                                         \
-    "\n EQ LF@irrsignCheck LF@tmpChar string@32"                        \
-    "\n JUMPIFEQ $readi$ignoretpaceReading LF@irrsignCheck bool@true"   \
-                                                                        \
-    "\n LABEL $readi$convert"                                           \
-    "\n "                                                               \
     "\n LABEL $readi$ret"                                               \
     "\n POPFRAME"                                                       \
-    "\n RETURN"                                         
-// TODO
+    "\n RETURN"
+    
 // function readn() : number
 #define FUNCTION_READN                                                  \
     "\n # Readn function"                                               \
     "\n LABEL $readn"                                                   \
     "\n PUSHFRAME"                                                      \
+    "\n DEFVAR LF@%retval"                                              \
+    "\n READ LF@%retval float"                                          \
+                                                                        \
+    "\n LABEL $readn$ret"                                               \
     "\n POPFRAME"                                                       \
     "\n RETURN"
-// TODO
+    
 // function write
 #define FUNCTION_WRITE                                                  \
     "\n # Write function"                                               \
     "\n LABEL $write"                                                   \
     "\n PUSHFRAME"                                                      \
+    "\n WRITE LF@%1"                                                    \
+    "\n MOVE GF@$res nil@nil"                                           \
+                                                                        \
+    "\n LABEL $write$ret"                                               \
     "\n POPFRAME"                                                       \
     "\n RETURN"
-// TODO
+
 // function tointeger(f : number) : integer
 #define FUNCTION_TOINTEGER                                              \
     "\n # Tointeger function"                                           \
     "\n LABEL $tointeger"                                               \
     "\n PUSHFRAME"                                                      \
+    "\n DEFVAR LF@%retval"                                              \
+    "\n FLOAT2INT LF@%retval LF@%1"                                     \
+                                                                        \
+    "\n LABEL $tointeger$ret"                                           \
     "\n POPFRAME"                                                       \
     "\n RETURN"
-// TODO//TOTEST
+
 // function substr(s : string, i : number, j : number) : string
 #define FUNCTION_SUBSTR                                                 \
     "\n # Substr function"                                              \
     "\n LABEL $substr"                                                  \
     "\n PUSHFRAME"                                                      \
-    "\n DEFVAR LF@%retString"                                           \
+    "\n DEFVAR LF@%retval"                                              \
     "\n DEFVAR LF@tmpChar"                                              \
     "\n DEFVAR LF@typeCheck"                                            \
-    "\n DEFVAR LF@lngCheck"                                             \
+    "\n DEFVAR LF@lenCheck"                                             \
     "\n DEFVAR LF@strLen"                                               \
     "\n DEFVAR LF@index"                                                \
-    "\n MOVE LF@%retString string@"                                     \
-    "\n STRLEN LF@strLen LF@%0"                                         \
+    "\n MOVE LF@%retval string@"                                        \
+    "\n STRLEN LF@strLen LF@%1"                                         \
                                                                         \
-    "\n EQ LF@typeCheck LF@%0 nil@nil"                                  \
-    "\n JUMPIFEQ $substr$errRet LF@typeCheck bool@true"                 \
     "\n EQ LF@typeCheck LF@%1 nil@nil"                                  \
     "\n JUMPIFEQ $substr$errRet LF@typeCheck bool@true"                 \
     "\n EQ LF@typeCheck LF@%2 nil@nil"                                  \
     "\n JUMPIFEQ $substr$errRet LF@typeCheck bool@true"                 \
+    "\n EQ LF@typeCheck LF@%3 nil@nil"                                  \
+    "\n JUMPIFEQ $substr$errRet LF@typeCheck bool@true"                 \
                                                                         \
-    "\n GT LF@lngCheck int@1 LF@%1"                                     \
-    "\n JUMPIFEQ $substr$ret LF@lngCheck bool@true"                     \
-    "\n GT LF@lngCheck LF@%1 LF@strLen"                                 \
-    "\n JUMPIFEQ $substr$ret LF@lngCheck bool@true"                     \
-    "\n GT LF@lngCheck int@1 LF@%2"                                     \
-    "\n JUMPIFEQ $substr$ret LF@lngCheck bool@true"                     \
-    "\n GT LF@lngCheck LF@%2 LF@strLen"                                 \
-    "\n JUMPIFEQ $substr$ret LF@lngCheck bool@true"                     \
+    "\n GT LF@lenCheck int@1 LF@%2"                                     \
+    "\n JUMPIFEQ $substr$ret LF@lenCheck bool@true"                     \
+    "\n GT LF@lenCheck LF@%2 LF@strLen"                                 \
+    "\n JUMPIFEQ $substr$ret LF@lenCheck bool@true"                     \
+    "\n GT LF@lenCheck int@1 LF@%3"                                     \
+    "\n JUMPIFEQ $substr$ret LF@lenCheck bool@true"                     \
+    "\n GT LF@lenCheck LF@%3 LF@strLen"                                 \
+    "\n JUMPIFEQ $substr$ret LF@lenCheck bool@true"                     \
                                                                         \
     "\n MOVE LF@index LF@%1"                                            \
     "\n LABEL $substr$loop"                                             \
-    "\n GT LF@lngCheck LF@index LF@%2"                                  \
-    "\n JUMPIFEQ $substr$ret LF@lngCheck bool@true"                     \
-    "\n GETCHAR LF@tmpChar LF@%0 LF@index"                              \
-    "\n CONCAT LF@%retString LF@%retString LF@tmpChar"                  \
+    "\n GT LF@lenCheck LF@index LF@%2"                                  \
+    "\n JUMPIFEQ $substr$ret LF@lenCheck bool@true"                     \
+    "\n GETCHAR LF@tmpChar LF@%1 LF@index"                              \
+    "\n CONCAT LF@%retval LF@%retval LF@tmpChar"                        \
     "\n ADD LF@index LF@index int@1"                                    \
     "\n JUMP $substr$loop"                                              \
                                                                         \
     "\n LABEL $substr$errRet"                                           \
-    "\n MOVE LF@%retString int@8"                                       \
+    "\n MOVE LF@%retval int@8"                                          \
                                                                         \
     "\n LABEL $substr$ret"                                              \
     "\n POPFRAME"                                                       \
     "\n RETURN"
-// TOTEST
+
 // function ord(s : string, i : integer) : integer 
 #define FUNCTION_ORD                                                    \
     "\n # Ord function"                                                 \
     "\n LABEL $ord"                                                     \
     "\n PUSHFRAME"                                                      \
-    "\n DEFVAR LF@%retString"                                           \
-    "\n DEFVAR LF@lngCheck"                                             \
+    "\n DEFVAR LF@%retval"                                              \
+    "\n MOVE LF@retval int@0"                                           \
+    "\n DEFVAR LF@lenCheck"                                             \
     "\n DEFVAR LF@strLen"                                               \
-    "\n STRLEN LF@strLen LF@%0"                                         \
-    "\n MOVE LF@retString string@"                                      \
-    "\n GT LF@lngCheck int@1 LF@%1"                                     \
-    "\n JUMPIFEQ $ord$ret LF@lngCheck bool@true"                        \
-    "\n GT LF@lngCheck LF@%1 LF@strLen"                                 \
-    "\n JUMPIFEQ $ord$ret LF@lngCheck bool@true"                        \
-    "\n STRI2INT LF@%retString LF@%0 LF@%1"                             \
+    "\n STRLEN LF@strLen LF@%1"                                         \
+    "\n GT LF@lenCheck int@1 LF@%2"                                     \
+    "\n JUMPIFEQ $ord$ret LF@lenCheck bool@true"                        \
+    "\n GT LF@lenCheck LF@%2 LF@strLen"                                 \
+    "\n JUMPIFEQ $ord$ret LF@lenCheck bool@true"                        \
+    "\n STRI2INT LF@%retval LF@%1 LF@%2"                                \
                                                                         \
     "\n LABEL $ord$ret"                                                 \
     "\n POPFRAME"                                                       \
     "\n RETURN"
-// TOTEST
+    
 // function chr(i : integer) : string
 #define FUNCTION_CHR                                                    \
     "\n # Chr function"                                                 \
     "\n LABEL $chr"                                                     \
     "\n PUSHFRAME"                                                      \
-    "\n DEFVAR LF@%retInteger"                                          \
+    "\n DEFVAR LF@%retval"                                              \
     "\n DEFVAR LF@rngCheck"                                             \
-    "\n MOVE LF@%retInteger string@"                                    \
-    "\n LT LF@rngCheck LF@%0 int@0"                                     \
+    "\n EQ LF@rngCheck LF@%1 nil@nil"                                   \
+    "\n JUMPIFEQ $chr$err LF@rngCheck bool@true"                        \
+                                                                        \
+    "\n MOVE LF@%retval string@"                                        \
+    "\n LT LF@rngCheck LF@%1 int@0"                                     \
     "\n JUMPIFEQ $chr$ret LF@rngCheck bool@true"                        \
-    "\n GT LF@rngCheck LF@%0 int@255"                                   \
+    "\n GT LF@rngCheck LF@%1 int@255"                                   \
     "\n JUMPIFEQ $chr$ret LF@rngCheck bool@true"                        \
-    "\n INT2CHAR LF@%retInteger LF@%0"                                  \
+    "\n INT2CHAR LF@%retval LF@%1"                                      \
+    "\n JUMP $chr$ret"                                                  \
+                                                                        \
+    "\n LABEL $chr$err"                                                 \
+    "\n MOVE LF@%retval int@8"                                          \
                                                                         \
     "\n LABEL $chr$ret"                                                 \
     "\n POPFRAME"                                                       \
@@ -175,5 +174,11 @@ bool cg_function_return ( char *functionId );
 bool cg_process_data_type ( Data_type dataType );
 
 bool cg_clear ();
+
+bool cg_frame_to_pass_param (  );
+
+bool cg_pass_param ( Token *token, int index );
+
+bool cg_term ( Token *token );
 
 #endif

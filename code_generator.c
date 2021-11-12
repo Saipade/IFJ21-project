@@ -53,9 +53,10 @@ bool cg_start (  ) {
 bool cg_function_header ( char *functionId ) {
 
     // commentary on the start of function
-    ADD_CODE( "\n# Function" );
+    ADD_CODE( "\n# Function " );
     ADD_CODE( functionId );
     ADD_LINE( ":" );
+    ADD_LINE( "" );
     // function start label
     ADD_CODE( "LABEL $" );
     ADD_LINE( functionId );
@@ -103,13 +104,12 @@ bool cg_function_output_type ( Data_type dataType, int index ) {
 
 bool cg_function_return ( char *functionId ) {
 
-    // function return label
     ADD_CODE( "LABEL $" ); 
     ADD_CODE( functionId ); 
     ADD_CODE( "$return\n" );
 	ADD_LINE( "POPFRAME" );
 	ADD_LINE( "RETURN" );
-    // commentary on the end of function
+    
     ADD_CODE( "\n# End of function" );
     ADD_LINE( functionId );
 
@@ -128,13 +128,108 @@ bool cg_var_decl ( char *variableId ) {
 
 }
 
-
-
 bool cg_call ( char *functionId ) {
 
     ADD_CODE( "CALL $" );
     ADD_LINE( functionId );
 
+    return true;
+
+}
+
+bool cg_frame_to_pass_param (  ) {
+
+    ADD_LINE( "CREATEFRAME" );
+
+    return true;
+
+} 
+
+bool cg_pass_param ( Token *token, int index ) {
+
+    char strIndex[2];
+    sprintf( strIndex, "%d", index );
+    ADD_CODE( "DEFVAR TF@%" );
+    ADD_CODE( strIndex );
+    if (!cg_term( token )) return false;
+    ADD_LINE( "" );
+
+}
+
+bool cg_term ( Token *token ) {
+
+    Dynamic_string str;
+    Dynamic_string *tmpString = &str;
+    if (!ds_init( tmpString )) return false;
+
+    char code[32];
+    char c;
+
+    switch (token->type) {
+
+        case (T_INT):
+
+            sprintf( code, "%d", token->attribute.integer );
+            ADD_CODE( "int@" );
+            ADD_CODE( code );
+
+        break;
+
+        case (T_NUM):
+
+            sprintf( code, "%a", token->attribute.floating );
+            ADD_CODE( "float@" );
+            ADD_CODE( code );
+
+        break;
+
+        case (T_STR):
+
+            for (int i = 0; c = (char) token->attribute.string->str[i] != '\0'; i++) {
+
+                if (c == '\\' || c == '#' || c <= 32 ) {
+                    ds_add_char( tmpString, '\\' );
+                    sprintf( code, "%03d", c );
+                    ds_add_chars( tmpString, code );
+                } 
+                
+                else {
+                    ds_add_char( tmpString, c );
+                }
+
+            }
+
+            ADD_CODE( "string@" );
+            ADD_CODE( tmpString->str );
+
+        break;
+
+        
+
+        case (T_IDE): 
+
+            ADD_CODE( "GF@" );
+            ADD_CODE( tmpString->str );
+            
+        break;
+
+        case (T_BOO):
+
+        case (T_NIL):
+
+        case (T_NDA):
+
+        default:
+
+            ds_free( tmpString );
+            return false;
+
+        break;
+
+
+    }
+
+    ds_free( tmpString );
     return true;
 
 }
@@ -151,7 +246,7 @@ bool cg_process_data_type ( Data_type dataType ) {
 
         break;
 
-        case (T_DOU): 
+        case (T_NUM): 
 
             ADD_CODE( "float@0.0");
 

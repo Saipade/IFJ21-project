@@ -1,0 +1,44 @@
+<program> -> <prologue> <program_body>
+
+<prologue> -> require "ifj21"
+
+<program_body> -> <program_statement> <program_body>
+<program_body> -> EOF
+<program statment> -> <function def.>  <function list>
+<program statment> -> <function decl.>  <function list>
+<program statment> -> expr
+<program statment> -> e
+
+
+<function def> -> FUNCTION ID (<fundef_params> <function return> <function_body>
+
+<function return> -> )
+<function return> -> : <freturn_list>
+
+<freturn_list> -> TYPE <other_types>
+<other_types> -> e | , TYPE <other_types>
+
+
+<function body> -> <function statement> <function body>
+<function body> -> END
+
+<function statement> -> LOCAL ID : TYPE <optional_def>
+<optional_def> -> = expr
+
+<function statement> -> <id list> = <value list> 
+<value list> -> ID (<expr. list>) . <value list>
+<value list> -> ε | , ID (<expr. list>) . <value list>
+
+<statement list> -> <id list> = <value list>
+<statement list> -> <id list> = ID (<expr. list>) 
+<statement list> -> ID (<expr. list>)
+
+<statement list> -> IF <expression> THEN <statement list> ELSE <statement list> END
+<statement list> -> WhILE <expression> DO <statement list> END
+
+<statement list> -> RETURN <expr. list>
+<statement list> -> WRITE (<expr list>)
+
+<statement list> -> ε
+
+TBD

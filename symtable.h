@@ -30,7 +30,7 @@ typedef struct {
 
 } Sym_table;
 
-bool st_init ( Sym_table *symTable );
+void st_init ( Sym_table *symTable );
 Item_data *st_search (Sym_table_itemPtr rootItem, char *key);
 void st_dispose ( Sym_table_itemPtr *rootItem );
 void st_insert ( Sym_table_itemPtr *rootItem, Sym_table_itemPtr newItem );

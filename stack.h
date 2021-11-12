@@ -12,12 +12,14 @@
 
 #include "scanner.h"
 #include "errorslist.h" 
+#include "expression.h"
 
 /**
  * Stack structure
  */
 typedef struct SElem {
 
+    pt_terminal symbol;
     Data_type data;
     struct SElem *nextItem;
 

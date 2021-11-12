@@ -16,7 +16,6 @@
 #define DYNAMIC_STR_STARTING_MEM 20
 #define DYNAMIC_STR_INCREASE_MEM 10
 
-
 // Scanner states
 typedef enum {
 
@@ -25,7 +24,7 @@ typedef enum {
     SCANNER_STATE_TILD,                     // Tilda; encountering '=' leads to T_NEQ
     SCANNER_STATE_FIRST_DASH,               // Might be either minus operator or start of comment
     SCANNER_STATE_SLASH,                    // Slash
-    SCANNER_STATE_COMMENT_LINE,             // 
+    SCANNER_STATE_COMMENT_LINE,             // --
     SCANNER_STATE_COMMENT_READ,             // Skipping line comment
     SCANNER_STATE_COMMENT_LSB,              // First square bracket after double dash
     SCANNER_STATE_COMMENTBLOCK,             // Start of commentary block
@@ -57,7 +56,7 @@ typedef enum {
     SCANNER_STATE_LET,                      // Less or equal state
     SCANNER_STATE_EQUAL_SIGN,               // Equal sign -> '=' or "=="
 
-} scannerState;
+} scanner_state;
 
 // Keywords
 typedef enum {
@@ -65,7 +64,7 @@ typedef enum {
     KW_INTEGER,             // integer
     KW_NUMBER,              // number
     KW_STRING,              // string
-    KW_BOOLEAN,             // boolean
+    //KW_BOOLEAN,             // boolean
     KW_NIL,                 // nil
     KW_DO,                  // do
     KW_ELSE,                // else
@@ -104,9 +103,9 @@ typedef union {
 typedef enum {
 
     T_INT,                  // integer type
-    T_DOU,                  // double type
+    T_NUM,                  // double type
     T_STR,                  // string type
-    T_BOO,                  // boolean type
+    //T_BOO,                  // boolean type
     T_NIL,                  // nil type
     T_NDA,                  // not defined
 
@@ -119,7 +118,7 @@ typedef enum {
     T_IDI,                  // //
     T_ADD,                  // +
     T_SUB,                  // -
-    T_CON,                  // ..
+    T_CAT,                  // ..
     T_LTH,                  // <
     T_LET,                  // <=
     T_MTH,                  // >
