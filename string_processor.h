@@ -10,6 +10,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+
+// For dynamic string memory allocation
 #define DYNAMIC_STR_STARTING_MEM 20
 #define DYNAMIC_STR_INCREASE_MEM 10
 

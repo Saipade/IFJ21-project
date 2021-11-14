@@ -188,9 +188,6 @@ int get_next_token ( Token *token ) {
 
                 else if (c == '=') { 
                     scannerState = SCANNER_STATE_EQUAL_SIGN;
-                    ds_free( scannerString );
-                    token->type = T_EQU;
-                    return SCAN_OK;
                 }
 
                 else if (c == '~') {
@@ -251,7 +248,7 @@ int get_next_token ( Token *token ) {
             case (SCANNER_STATE_INT):
 
                 if      (scannerString->str[0] == '0' && (c >= '0' && c <= '9')) {
-                    return ERR_SYNTAX;
+                    return ERR_LEXICAL;
                 }
 
                 else if (c >= '0' && c <= '9') {
@@ -456,14 +453,14 @@ int get_next_token ( Token *token ) {
                 
                 if (c == '=') {
                     ds_free( scannerString );
-                    token->type = T_IEQ;
+                    token->type = T_EQU;
                     return SCAN_OK;
                 }
 
                 else {
                     ungetc( c, srcF );
                     ds_free( scannerString );
-                    token->type = T_EQU;
+                    token->type = T_ASS;
                     return SCAN_OK;
                 }
 

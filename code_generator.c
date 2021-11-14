@@ -6,6 +6,7 @@
 #include "scanner.h"
 #include "string_processor.h"
 #include "symtable.h"
+#include "parser.h"
 
 #include <string.h>
 
@@ -46,10 +47,7 @@ bool cg_start (  ) {
 
 /* .......................................... FUNCTION FRAME CODE GENERATION .......................................... */
 
-/* function header of form  
-    LABEL $functionId
-    PUSHFRAME        
-*/
+
 bool cg_function_header ( char *functionId ) {
 
     // commentary on the start of function
@@ -213,9 +211,17 @@ bool cg_term ( Token *token ) {
             
         break;
 
-        case (T_BOO):
+        // case (T_BOO): until better times
+
+            // ADD_CODE( "bool@false" );
+
+        // break;
 
         case (T_NIL):
+
+            ADD_CODE( "nil@nil" );
+
+        break;
 
         case (T_NDA):
 
@@ -230,6 +236,37 @@ bool cg_term ( Token *token ) {
     }
 
     ds_free( tmpString );
+    return true;
+
+}
+
+bool cg_declare_var ( Item_data *item ) {
+
+    ADD_CODE( "DEFVAR LF@" );
+    ADD_LINE( item->id );
+
+    return true;
+
+}
+
+bool cg_define_var ( Item_data *item ) {
+    
+    ADD_CODE( "MOVE LF@ " );
+    ADD_CODE( item->id );
+    ADD_CODE( " " );
+    if (!cg_process_data_type( item->type )) return false;
+    ADD_LINE( "" );
+
+    return true;
+
+}
+
+bool cg_push ( Token *token ) {
+
+    ADD_CODE( "PUSHS " );
+    if (!cg_term( token )) return false;
+    ADD_LINE( "" );
+
     return true;
 
 }
@@ -258,11 +295,11 @@ bool cg_process_data_type ( Data_type dataType ) {
 
         break;
 
-        case (T_BOO):
+        //case (T_BOO):
 
-            ADD_CODE( "bool@false");
+        //    ADD_CODE( "bool@false");
 
-        break;
+        //break;
 
         case (T_NIL):
 
@@ -293,4 +330,40 @@ bool cg_if_header ( char *functionId ) {
 
     return true;
     
+}
+
+bool cg_operation ( Data_type type, pt_rule rule ) {
+
+    switch (rule) {
+
+        case LEN_E:
+
+            ADD_CODE( "STRLEN " );
+
+        break;
+
+        case E_PLUS_E:
+
+            ADD_CODE( "ADDS " );
+
+        break;
+
+        case E_MINUS_E:
+
+            ADD_CODE( "SUBS " );
+
+        break;
+
+        case E_MUL_E:
+
+            ADD_CODE( "MULS " );
+
+        break;
+
+        
+
+    }
+
+
+
 }

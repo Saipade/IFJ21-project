@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "expression.h"
+
 // Definition of built-in functions
 
 // function reads() : string
@@ -180,5 +182,15 @@ bool cg_frame_to_pass_param (  );
 bool cg_pass_param ( Token *token, int index );
 
 bool cg_term ( Token *token );
+
+bool cg_declare_var ( Item_data *item );
+
+bool cg_define_var ( Item_data *item );
+
+bool cg_push ( Token *token );
+
+bool cg_if_header ( char *functionId );
+
+bool cg_operation ( Data_type type, pt_rule rule );
 
 #endif

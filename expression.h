@@ -1,15 +1,16 @@
-
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
 
 #include "parser.h"
+#include "stack.h"
 
-#define IS_I(ITEM)									\
-	   ITEM->symbol == INT						\
-	|| ITEM->symbol == NUM						\
-	|| ITEM->symbol == STR					    \
-	|| ITEM->symbol == NIL                        \
-    || ITEM->symbol == IDE
+#define IS_I(SYMBOL)						    \
+	   SYMBOL == INT						    \
+	|| SYMBOL == NUM						    \
+	|| SYMBOL == STR					        \
+	|| SYMBOL == NIL                            \
+    || SYMBOL == IDE
+
 
 typedef enum {
 
@@ -18,14 +19,17 @@ typedef enum {
     E,                  // equal
     B,                  // blank -- not defined
 
-} pc_operation;
+} pt_operation;
 
 typedef enum {
 
     INT,                // integer
     NUM,                // number
     STR,                // string
+    BOO,                // boolean  
     NIL,                // nil
+
+    NDA,                // not defined
 
     IDE,                // identifier
     NONTERM,            // non-terminal
@@ -36,8 +40,8 @@ typedef enum {
     DIV,                // /
     IDI,                // //
     CAT,                // ..
-
     LEN,                // #
+
     LTH,                // <
     LET,                // <=
     MTH,                // >
@@ -45,8 +49,8 @@ typedef enum {
     EQU,                // ==
     NEQ,                // ~=
 
-    LBR,
-    RBR,
+    LBR,                // (
+    RBR,                // )
 
     STOP,               // stop sign
     DOL,                // $
@@ -55,25 +59,25 @@ typedef enum {
 
 typedef enum {
 
-    NT_RULE,            // E -> i
+    E_RULE,            // E -> i
 
-    LEN_NT,             // E -> # E
+    LEN_E,             // E -> # E
 
-    NT_PLUS_NT,         // E -> E + E
-    NT_MINUS_NT,        // E -> E - E
-    NT_MUL_NT,          // E -> E * E
-    NT_DIV_NT,          // E -> E / E
-    NT_IDIV_NT,         // E -> E // E
-    NT_CAT_NT,          // E -> E .. E
+    E_PLUS_E,         // E -> E + E
+    E_MINUS_E,        // E -> E - E
+    E_MUL_E,          // E -> E * E
+    E_DIV_E,          // E -> E / E
+    E_IDIV_E,         // E -> E // E
+    E_CAT_E,          // E -> E .. E
 
-    NT_LTH_NT,          // E -> E < E
-    NT_LET_NT,          // E -> E <= E
-    NT_MTH_NT,          // E -> E > E
-    NT_MET_NT,          // E -> E >= E
-    NT_IEQ_NT,          // E -> E == E
-    NT_NEQ_NT,          // E -> E ~= E
+    E_LTH_E,          // E -> E < E
+    E_LET_E,          // E -> E <= E
+    E_MTH_E,          // E -> E > E
+    E_MET_E,          // E -> E >= E
+    E_EQU_E,          // E -> E == E
+    E_NEQ_E,          // E -> E ~= E
 
-    LBR_NT_RBR,         // E -> ( E )
+    LBR_E_RBR,         // E -> ( E )
 
     ND_RULE,
 
@@ -87,11 +91,20 @@ typedef enum {
     I_LBR,
     I_RBR,
     I_i,
-    I_HASH,
+    I_LEN,
     I_CAT,
     I_DOLLAR,
 
 } pt_index;
+
+int expression ( Parser_data *parserData );
+int shift ( Parser_data *parserData, Stack *stack, pt_terminal symbol );
+int reduce ( Parser_data *parserData );
+pt_rule check_rule ( int count, Stack_item *item1, Stack_item *item2, Stack_item *item3 );
+int test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_rule rule );
+pt_terminal convert_token_to_symbol ( Token *token );
+pt_index get_pt_index ( pt_terminal symbol );
+
 
 
 #endif

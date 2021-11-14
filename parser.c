@@ -7,6 +7,7 @@
  * 
  * 
 */
+
 #ifndef PARSER_C
 #define PARSER_C
 
@@ -235,7 +236,7 @@ int rule_functionList ( Parser_data *parserData ) {
 
     int res;
     
-    // <function declaration> -> GLOBAL ID : FUNCTION (<param list type 1>) : <param list type 3> . <function list>
+    // <function declaration> -> GLOBAL ID : FUNCTION (<param list type 1>) : <param list type 3>
     if (parserData->token.attribute.keyword == KW_GLOBAL) {                                     // GLOBAL
 
         if (res = get_next_token_and_check_type( parserData, T_IDE )) return res;               // ID
@@ -262,7 +263,7 @@ int rule_functionList ( Parser_data *parserData ) {
         
         return rule_functionList( parserData );                                                 // <function list>
 
-    // <function definition> -> FUNCTION ID (<param list type 2>) : <param list type 3> <statement list> END . <function list>
+    // <function definition> -> FUNCTION ID (<param list type 2>) : <param list type 3> <statement list> END
     } else if (parserData->token.attribute.keyword == KW_FUNCTION) {                            // FUNCTION
         
         if (res = get_next_token_and_check_type( parserData, T_IDE )) return res;               // ID
@@ -446,7 +447,7 @@ int rule_statementList ( Parser_data *parserData ) {
                 }
             if (parserData->lhsId == NULL) return ERR_SEMANTIC_UNDEF_VAR;                        // you checked if it is declared already
 
-            if (res = get_next_token_and_check_type( parserData, T_EQU )) return res;
+            if (res = get_next_token_and_check_type( parserData, T_ASS )) return res;
 
             if (res = get_next_token_and_apply_rule( parserData, "rule_Value" )) return res;
 
@@ -491,13 +492,12 @@ int rule_statementList ( Parser_data *parserData ) {
     }
 
     // $2
-    // <statement> -> LOCAL ID : TYPE = <value> . <statement list>
-    // <statement> -> LOCAL ID : TYPE . <statement list>
+    // <statement> -> LOCAL ID : TYPE = <value>
+    // <statement> -> LOCAL ID : TYPE
     else if (parserData->token.attribute.keyword == KW_LOCAL) {                                     // LOCAL
 
         if (res = get_next_token_and_check_type( parserData, T_IDE )) return res;                   // ID
-        parserData->currentId = st_search( parserData->symTable[0].rootItem, parserData->token.attribute.string->str );
-        parserData->currentId = st_search( parserData->symTable[parserData->currentDepth].rootItem, parserData->token.attribute.string->str );
+        SEARCH_GLOBAL_AND_LOCAL( parserData->currentId, parserData->token.attribute.string->str, parserData->currentDepth );
         if (!parserData->currentId)
             parserData->currentId = st_add_id( &parserData->symTable[parserData->currentDepth], parserData->token.attribute.string->str );
         else return ERR_SEMANTIC_UNDEF_VAR;

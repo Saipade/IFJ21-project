@@ -29,33 +29,33 @@ Item_data *st_add_id ( Sym_table *symTable, char *key ) {
     
     struct Sym_table_item *newItem;
     if (!(newItem = malloc( sizeof( struct Sym_table_item ) ))) {
-        exit(99);
+        exit( ERR_INTERNAL );
         return NULL;
     }
 
     if (!(newItem->key = malloc( strlen( key ) * sizeof( char ) + 2 ))) {
-        exit(99);
+        exit( ERR_INTERNAL );
     }
     
     if (!(newItem->data.id = malloc( strlen( key ) * sizeof( char ) + 2 ))) {
-        exit(99);
+        exit( ERR_INTERNAL );
     }
 
     if (!(newItem->data.inputTypes = malloc( sizeof( Dynamic_string ) ))) {
-        exit(99);
+        exit( ERR_INTERNAL );
     }
 
     if (!ds_init( newItem->data.inputTypes )) {
-        exit(99);
+        exit( ERR_INTERNAL );
     }
 
     newItem->data.outputTypes = malloc( sizeof( Dynamic_string ) );
     if (!newItem->data.outputTypes) {
-        exit(99);
+        exit( ERR_INTERNAL );
     }
 
     if (!ds_init( newItem->data.outputTypes )) {
-        exit(99);
+        exit( ERR_INTERNAL );
     }
 
     strcpy( newItem->key, key );
@@ -76,8 +76,6 @@ void st_insert ( Sym_table_itemPtr *rootItem, Sym_table_itemPtr newItem ) {
 
     if (rootItem == NULL || (*rootItem) == NULL) {
 
-        //printf("%s\n", newItem->key);
-        
         *rootItem = newItem;
         
     }
@@ -185,8 +183,6 @@ int st_add_type ( Token *token, Item_data *item ) {
     return 0;
 
 }
-
-// strcmp : abdfa - abdfab = 98(b)     (strcmp( "abdfa", "abdfab" )) the longer the bigger
 
 Item_data *st_search ( Sym_table_itemPtr rootItem, char *key ) {
     

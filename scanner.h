@@ -12,10 +12,6 @@
 
 #include "string_processor.h"
 
-// For dynamic string memory allocation
-#define DYNAMIC_STR_STARTING_MEM 20
-#define DYNAMIC_STR_INCREASE_MEM 10
-
 // Scanner states
 typedef enum {
 
@@ -61,80 +57,82 @@ typedef enum {
 // Keywords
 typedef enum {
 
-    KW_INTEGER,             // integer
-    KW_NUMBER,              // number
-    KW_STRING,              // string
-    //KW_BOOLEAN,             // boolean
-    KW_NIL,                 // nil
-    KW_DO,                  // do
-    KW_ELSE,                // else
-    KW_END,                 // end 
-    KW_FUNCTION,            // function
-    KW_GLOBAL,              // global
-    KW_IF,                  // if
-    KW_LOCAL,               // local
-    KW_REQUIRE,             // require
-    KW_RETURN,              // return
-    KW_THEN,                // then
-    KW_WHILE,               // while
+    KW_INTEGER,                             // integer
+    KW_NUMBER,                              // number
+    KW_STRING,                              // string
+    //KW_BOOLEAN,                           // boolean
+    KW_NIL,                                 // nil
+    KW_DO,                                  // do
+    KW_ELSE,                                // else
+    KW_END,                                 // end 
+    KW_FUNCTION,                            // function
+    KW_GLOBAL,                              // global
+    KW_IF,                                  // if
+    KW_LOCAL,                               // local
+    KW_REQUIRE,                             // require
+    KW_RETURN,                              // return
+    KW_THEN,                                // then
+    KW_WHILE,                               // while
     // build-in functions
-    KW_READS,               // reads 
-    KW_READI,               // readi 
-    KW_READN,               // readn 
-    KW_WRITE,               // write
-    KW_TOINTEGER,           // tointeger 
-    KW_SUBSTR,              // substr
-    KW_ORD,                 // ord
-    KW_CHR,                 // chr
+    KW_READS,                               // reads 
+    KW_READI,                               // readi 
+    KW_READN,                               // readn 
+    KW_WRITE,                               // write
+    KW_TOINTEGER,                           // tointeger 
+    KW_SUBSTR,                              // substr
+    KW_ORD,                                 // ord
+    KW_CHR,                                 // chr
 
 } Keyword;
 
 // Token attribute
 typedef union {
 
-	int integer;            // Integer value.
-	double floating;        // Value with floating point 
-    Dynamic_string *string; // String or identifier value.
-	Keyword keyword;        // If token is keyword
+	int integer;                            // Integer value.
+	double floating;                        // Value with floating point 
+    Dynamic_string *string;                 // String or identifier value.
+	Keyword keyword;                        // If token is keyword
 
 } Token_attribute;
 
 // Types of token
 typedef enum {
 
-    T_INT,                  // integer type
-    T_NUM,                  // double type
-    T_STR,                  // string type
-    //T_BOO,                  // boolean type
-    T_NIL,                  // nil type
-    T_NDA,                  // not defined
+    T_INT,                                  // integer type
+    T_NUM,                                  // double type
+    T_STR,                                  // string type
+    T_BOO,                                // boolean type
+    T_NIL,                                  // nil type
+    T_NDA,                                  // not defined
 
-    T_IDE,                  // identifier type
-    T_KEY,                  // keyword type
+    T_IDE,                                  // identifier type
+    T_KEY,                                  // keyword type
 
-    T_LEN,                  // #
-    T_MUL,                  // *
-    T_DIV,                  // /
-    T_IDI,                  // //
-    T_ADD,                  // +
-    T_SUB,                  // -
-    T_CAT,                  // ..
-    T_LTH,                  // <
-    T_LET,                  // <=
-    T_MTH,                  // >
-    T_MET,                  // >=
-    T_EQU,                  // =
-    T_NEQ,                  // ~=
-    T_IEQ,                  // ==
+    T_ADD,                                  // +
+    T_SUB,                                  // -
+    T_MUL,                                  // *
+    T_DIV,                                  // /
+    T_IDI,                                  // //
+    T_CAT,                                  // ..
+    T_LEN,                                  // #
 
-    T_LBR,                  // (
-    T_RBR,                  // )
-    T_COL,                  // :
-    T_COM,                  // ,
+    T_LTH,                                  // <
+    T_LET,                                  // <=
+    T_MTH,                                  // >
+    T_MET,                                  // >=
+    T_EQU,                                  // ==
+    T_NEQ,                                  // ~=
 
-    T_EOF,                  // end of file
+    T_LBR,                                  // (
+    T_RBR,                                  // )
 
-    T_DOL,                  // $
+    T_DOL,                                  // $
+//  EXPRESSION SYMBOLS END
+    T_ASS,                                  // =
+    T_COL,                                  // :
+    T_COM,                                  // ,
+
+    T_EOF,                                  // end of file
     
 } Data_type;
 // Token structure
