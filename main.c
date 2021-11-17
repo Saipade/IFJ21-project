@@ -1,15 +1,9 @@
-/*
-
-*/
-
-#include "scanner.c"
-#include "errorslist.h"
-#include "string_processor.c"
-#include "parser.c"
+#include "parser.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
-FILE *srcF;
+
 
 /* typedef struct {
 
@@ -39,9 +33,13 @@ bool parser_data_init ( Parser_data *parserData ) {
 
 
 
-int main() {
+int main(  ) {
+
+    FILE *srcF;
 
     srcF = stdin;
+
+    set_source_file(srcF);
     
     parse (  );
 
