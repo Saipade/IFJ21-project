@@ -10,36 +10,17 @@
 #include "scanner.h"
 #include "symtable.h"
 
-#define SEARCH_GLOBAL(ID, STR)                                                  \
-    ID = st_search( parserData->symTable[0].rootItem, STR )                 
 
-#define SEARCH_LOCAL(ID, STR, DEPTH)                                            \
-    ID = st_search( parserData->symTable[DEPTH].rootItem, STR )             
-
-#define SEARCH_GLOBAL_AND_LOCAL(ID, STR, DEPTH)                                 \
-    do {                                                                        \
-        ID = st_search( parserData->symTable[0].rootItem, STR );                 \
-        if (ID == NULL)                                                         \
-        ID = st_search( parserData->symTable[DEPTH].rootItem, STR );             \
-    } while (0)
-
-#define SEARCH_ALL_LOCAL(ID, STR, DEPTH)                                        \
-    do {                                                                        \
-        for (int i = DEPTH; i > 0; i--) {                                       \
-            ID = st_search( parserData->symtable[i].rootItem, STR )             \
-            if (ID != NULL) break                                               \
-        }                                                                       \
-    } while (0)
-
-#define SEARCH_EVERYWHERE(ID, STR, DEPTH)                                       \
-    do {                                                                        \
-        ID = st_search( parserData->symTable[0].rootItem, STR );                \
-        if (ID == NULL)                                                         \
-        for (int i = DEPTH; i > 0; i--) {                                       \
-            ID = st_search( parserData->symtable[i].rootItem, STR )             \
-            if (ID != NULL) break                                               \
-        }                                                                       \
-    } while (0)
+#define IS_BUILTIN(TOKEN)                                                                                                     \
+    TOKEN.type == T_KEY                                                                                             \
+    && (TOKEN.attribute.keyword == KW_READI                                                                         \
+    || TOKEN.attribute.keyword == KW_READN                                                                          \
+    || TOKEN.attribute.keyword == KW_READS                                                                          \
+    || TOKEN.attribute.keyword == KW_WRITE                                                                          \
+    || TOKEN.attribute.keyword == KW_TOINTEGER                                                                      \
+    || TOKEN.attribute.keyword == KW_SUBSTR                                                                         \
+    || TOKEN.attribute.keyword == KW_ORD                                                                            \
+    || TOKEN.attribute.keyword == KW_CHR)                                                                           \
 
 
 typedef struct {
@@ -51,8 +32,8 @@ typedef struct {
 
     Item_data *lhsId;       // left-hand  side func/var identifier
     Item_data *rhsId;       // right-hand side func/var identifier
-    Item_data *auxId;       // auxiliary identifier
-    Item_data *currentId;   // current func/var identifier
+    Item_data *currentVar;       // auxiliary identifier
+    Item_data *currentFunc;   // current func/var identifier
 
     bool inDecl;            // if parser is in declaration
     bool inFunc;            // if parser is in function

@@ -28,10 +28,12 @@ void _code_string ( Dynamic_string *string ) {
 	if (!ds_add_chars( codeString, CODE )) return false;					\
 	if (!ds_add_chars( codeString, "\n" )) return false;
 
+/* .......................................... MAIN FUNCTION FRAME GENERATION .......................................... */
+
 bool cg_start (  ) {
-
-    ADD_LINE(".IFJcode21");
-
+    // prologue
+    ADD_LINE( ".IFJcode21" );
+    // add built-in functions
     ADD_LINE( FUNCTION_READS );
     ADD_LINE( FUNCTION_READI );
     ADD_LINE( FUNCTION_READS );
@@ -40,6 +42,26 @@ bool cg_start (  ) {
     ADD_LINE( FUNCTION_SUBSTR );
     ADD_LINE( FUNCTION_ORD );
     ADD_LINE( FUNCTION_CHR );
+    // define global variables for some operations
+    ADD_LINE( "DEFVAR GF@$tmp1" );
+    ADD_LINE( "DEFVAR GF@$tmp2" );
+    ADD_LINE( "DEFVAR GF@$tmp3" );
+    ADD_LINE( "DEFVAR GF@$res" );
+    ADD_LINE( "MOVE GF@$res nil@nil" );
+    ADD_LINE( "DEFVAR GF@%return" );
+    // main function
+    ADD_LINE( "JUMP $main");
+
+    cg_function_header( "$main" );
+
+    return true;
+
+}
+
+bool cg_end (  ) {
+
+    ADD_LINE( "POPFRAME" );
+    ADD_LINE( "CLEARS" );
 
     return true;
 
@@ -47,10 +69,8 @@ bool cg_start (  ) {
 
 /* .......................................... FUNCTION FRAME CODE GENERATION .......................................... */
 
-
 bool cg_function_header ( char *functionId ) {
 
-    // commentary on the start of function
     ADD_CODE( "\n# Function " );
     ADD_CODE( functionId );
     ADD_LINE( ":" );
@@ -58,6 +78,7 @@ bool cg_function_header ( char *functionId ) {
     // function start label
     ADD_CODE( "LABEL $" );
     ADD_LINE( functionId );
+    ADD_LINE( "CREATEFRAME" );
     ADD_LINE( "PUSHFRAME" );
 
     return true;
@@ -71,7 +92,7 @@ bool cg_function_input_type ( char *inputId, Data_type dataType, int index ) {
     // declare variable inputId
     ADD_CODE( "DEFVAR LF@");
     ADD_LINE( inputId );
-    // pass index' output value to it
+    // pass index' retval value to it
     ADD_CODE( "MOVE LF@" );
     ADD_CODE( inputId );
     ADD_CODE( " LF@%" );
@@ -81,16 +102,15 @@ bool cg_function_input_type ( char *inputId, Data_type dataType, int index ) {
 
 }
 
-
 bool cg_function_output_type ( Data_type dataType, int index ) {
     
     char strIndex[32];
     sprintf( strIndex, "%d", index );
     // declare output variable
-    ADD_CODE( "DEFVAR LF@%output");
+    ADD_CODE( "DEFVAR LF@%retval");
     ADD_LINE( strIndex );
     // assign type to it
-    ADD_CODE( "MOVE LF@%output");
+    ADD_CODE( "MOVE LF@%retval");
     ADD_CODE( strIndex );
     ADD_CODE( " " );
     if (!cg_process_data_type( dataType )) return false;
@@ -122,7 +142,7 @@ bool cg_var_decl ( char *variableId ) {
     ADD_CODE( "DEFVAR LF@");
     ADD_LINE( variableId );  
 
-    return true;  
+    return true;
 
 }
 
@@ -151,6 +171,8 @@ bool cg_pass_param ( Token *token, int index ) {
     ADD_CODE( strIndex );
     if (!cg_term( token )) return false;
     ADD_LINE( "" );
+
+    return true;
 
 }
 
@@ -320,50 +342,121 @@ bool cg_process_data_type ( Data_type dataType ) {
 
 }
 
+bool cg_convert_top_num2int (  ) {
 
-/* .......................................... IF/WHILE STATEMENT .......................................... */
+    ADD_LINE( "FLOAT2INTS" );
 
-bool cg_if_header ( char *functionId ) {
+    return true;
 
-    ADD_CODE( "JUMPIFEQ $");
-    
+} 
+
+bool cg_convert_2nd_num2int (  ) {
+
+    ADD_LINE( "POPS" );
+    ADD_LINE( "FLOAT2INTS" );
+    ADD_LINE( "PUSHS" );
 
     return true;
     
 }
 
-bool cg_operation ( Data_type type, pt_rule rule ) {
+bool cg_convert_top_int2num (  ) {
 
-    switch (rule) {
+    ADD_LINE( "INT2FLOATS" );
 
-        case LEN_E:
-
-            ADD_CODE( "STRLEN " );
-
-        break;
-
-        case E_PLUS_E:
-
-            ADD_CODE( "ADDS " );
-
-        break;
-
-        case E_MINUS_E:
-
-            ADD_CODE( "SUBS " );
-
-        break;
-
-        case E_MUL_E:
-
-            ADD_CODE( "MULS " );
-
-        break;
-
-        
-
-    }
-
-
+    return true;
 
 }
+
+bool cg_convert_2nd_int2num (  ) {
+
+    ADD_LINE( "POPS" );
+    ADD_LINE( "INT2FLOATS" );
+    ADD_LINE( "PUSHS" );
+
+    return true;
+
+}
+
+/* .......................................... IF/WHILE STATEMENT .......................................... */
+
+bool cg_if_header ( int index, int depth ) {
+
+    char *strIndex;
+    char *strDepth;
+
+    sprintf( strIndex, "%d", index );
+    sprintf( strDepth, "%d", depth );
+
+    ADD_CODE( "JUMPIFEQ $");
+    ADD_CODE( "%" );
+    
+
+
+    return true;
+    
+}
+
+/* .......................................... EXPRESSION .......................................... */
+
+bool cg_save_result ( char *id ) {
+
+    ADD_CODE( "POPS " );
+    ADD_CODE( "LF@" );
+    ADD_LINE( id );
+
+    return true;
+
+}
+
+bool cg_adds () {
+
+    ADD_LINE( "ADDS" );
+
+    return true;
+
+}
+
+bool cg_subs () {
+
+    ADD_LINE( "SUBS" );
+
+    return true;
+
+}
+
+bool cg_muls () {
+
+    ADD_LINE( "MULS" );
+
+    return true;
+    
+}
+
+bool cg_divs () {
+
+    ADD_LINE( "DIVS" );
+
+    return true;
+    
+}
+
+bool cg_idivs () {
+
+    ADD_LINE( "IDIVS" );
+
+    return true;
+    
+}
+
+bool cg_cats () {
+
+    ADD_LINE( "POPS GF@$tmp1" );
+    ADD_LINE( "POPS GF@$tmp0" );
+    ADD_LINE( "CONCAT GF@$tmp0 GF@$tmp0 GF@$tmp1");
+    ADD_LINE( "PUSHS GF@$tmp0" );
+
+    return true;
+    
+}
+

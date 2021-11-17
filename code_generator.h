@@ -175,7 +175,15 @@ bool cg_function_return ( char *functionId );
 
 bool cg_process_data_type ( Data_type dataType );
 
-bool cg_clear ();
+bool cg_convert_top_num2int (  );
+
+bool cg_convert_2nd_num2int (  );
+
+bool cg_convert_top_int2num (  );
+
+bool cg_convert_2nd_int2num (  );
+
+bool cg_clear (  );
 
 bool cg_frame_to_pass_param (  );
 
@@ -189,7 +197,9 @@ bool cg_define_var ( Item_data *item );
 
 bool cg_push ( Token *token );
 
-bool cg_if_header ( char *functionId );
+bool cg_if_header ( int index, int depth );
+
+bool cg_save_result ( char *id );
 
 bool cg_operation ( Data_type type, pt_rule rule );
 

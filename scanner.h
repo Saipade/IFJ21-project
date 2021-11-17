@@ -101,7 +101,7 @@ typedef enum {
     T_INT,                                  // integer type
     T_NUM,                                  // double type
     T_STR,                                  // string type
-    T_BOO,                                // boolean type
+    T_BOO,                                  // boolean type
     T_NIL,                                  // nil type
     T_NDA,                                  // not defined
 

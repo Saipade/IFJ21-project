@@ -12,24 +12,22 @@ void s_init ( Stack *stack ) {
 
 }
 
-void s_push ( Stack *stack, Token *token, pt_terminal symbol ) {
+void s_push ( Stack *stack, Data_type data, pt_terminal symbol ) {
 
     Stack_item *newItem = malloc( sizeof ( Stack_item ) );
-    if (!newItem) return false;
+    if (!newItem) return;
 
-    newItem->token = *token;
     newItem->nextItem = stack->top;
     stack->top = newItem;
     
 }
 
-void s_push_before_terminal ( Stack *stack, Token *token, pt_terminal symbol ) {
+void s_push_before_terminal ( Stack *stack, Data_type data, pt_terminal symbol ) {
 
     Stack_item *newItem = malloc( sizeof ( Stack_item ) );
     if (!newItem) return;
     Stack_item *tmp1 = stack->top;
     Stack_item *tmp2;
-    newItem->token = *token;
     newItem->symbol = symbol;
 
     while (1) {

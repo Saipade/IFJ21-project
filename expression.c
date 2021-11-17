@@ -17,17 +17,26 @@
 // symbol on top has lower or same priority compared to the next symbol -> reduce
 // S - shift; R - reduction; E - equal; B - blank (not defined rule)
 pt_operation precedenceTable[9][9] = {
-//input|+- |*/ |cmp| ( | ) | i | # |.. | $    // top of stack
+//input|+- |*/ |rel| ( | ) | i | # |.. | $    // top of stack
 	   { R , S , R , S , R , S , S , R , R }, // +-
 	   { R , R , R , S , R , S , S , R , R }, // * / //
-	   { S , S , B , S , R , S , S , S , R }, // cmp
+	   { S , S , B , S , R , S , S , S , R }, // rel
 	   { S , S , S , S , E , S , S , S , B }, // (
 	   { R , R , R , B , R , B , B , R , R }, // )
 	   { R , R , R , B , R , B , R , R , R }, // i
-       { R , R , R , B , R , S , B , B , R }, // #
+       { R , R , R , S , R , S , B , R , R }, // # // (.. x #) = ????
        { S , S , R , S , R , S , B , S , R }, // ..
 	   { S , S , S , S , B , S , S , S , B }, // $
 };
+
+int rule_Expression ( Parser_data *parserData );
+int shift ( Parser_data *parserData, Stack *stack, pt_terminal symbol );
+int reduce ( Parser_data *parserData );
+pt_rule check_rule ( int count, Stack_item *item1, Stack_item *item2, Stack_item *item3 );
+int test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_rule rule );
+pt_terminal convert_token_to_symbol ( Token *token );
+pt_index get_pt_index ( pt_terminal symbol );
+int save_result ( Parser_data *parserData, Stack *stack );
 
 Stack st;
 Stack *stack = &st;
@@ -141,9 +150,9 @@ pt_index get_pt_index ( pt_terminal symbol ) {
 }
 
 
-int expression ( Parser_data *parserData ) {
+int rule_Expression ( Parser_data *parserData ) {
 
-    int res;
+    int res = 0;
 
     s_init( stack );
     s_push( stack, T_DOL, DOL );
@@ -196,14 +205,20 @@ int expression ( Parser_data *parserData ) {
 
     }
 
+    if (res = save_result( parserData, stack ));
+
+    s_dispose( stack );
+
+    return res;
+
 }
 
 int shift ( Parser_data *parserData, Stack *stack, pt_terminal symbol ) {
 
-    int res;
+    int res = 0;
 
     s_push_before_terminal( stack, T_NDA, STOP );
-    s_push( stack, &parserData->token, symbol );
+    s_push( stack, parserData->tokenTable->type, symbol );
     if (IS_I(symbol)) 
     cg_push( &parserData->token );
     
@@ -211,13 +226,13 @@ int shift ( Parser_data *parserData, Stack *stack, pt_terminal symbol ) {
     
 }
 /**
- * Applies one of the rules up to 3 
+ * Applies one of the rules up to 3 symbols from stack
  * 
  * 
  */
 int reduce ( Parser_data *parserData ) {
 
-    int res;
+    int res = 0;
     int count = 0;
     bool found = 0;
 
@@ -268,17 +283,14 @@ int reduce ( Parser_data *parserData ) {
 
     if (ruleName == ND_RULE) exit( ERR_SYNTAX );
 
-    Data_type finalType = test_semantic( item1, item2, item3, ruleName );
+    Data_type resType = test_semantic( item1, item2, item3, ruleName );
 
-    cg_expression_operation( finalType, ruleName );
+    // pop out all "consumed" symbols and stop sign
+    for (int i = 0; i <= count; i++) s_pop( stack );
+    // and push created non-terminal
+    s_push( stack, resType, NONTERM );
 
-
-
-
-    
-
-
-    return 0;
+    return res;
 
 }
 
@@ -485,5 +497,63 @@ int test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_
 
     }
 
+
+}
+
+/**
+ * @brief Saves expression result 
+ * @param parserData current data
+ * @param stack stack for symbols
+ */
+int save_result ( Parser_data *parserData, Stack *stack ) {
+
+    if (!parserData->lhsId) return 0;
+
+    int res = 0;
+
+    Stack_item *result = s_top( stack );
+    // check variable's and expression's types compatibility
+    switch (result->symbol) {
+
+        case (INT) :
+
+            if (parserData->lhsId->type == NUM) {
+                cg_convert_top_num2int(  );
+            }            
+
+            cg_save_result( parserData->lhsId->id );
+
+        break;
+
+        case (T_NUM):
+
+            if (parserData->lhsId->type == INT) {
+                cg_convert_top_int2num(  );
+            }
+
+            cg_save_result( parserData->lhsId->id );
+
+        break;
+
+        case (T_STR):
+
+            if (parserData->lhsId->type != T_STR) exit( ERR_SEMANTIC_INCOP_TYPE );
+
+            cg_save_result( parserData->lhsId->id );
+
+        break;
+
+        case (T_BOO):
+
+            if (parserData->lhsId->type != T_BOO) exit( ERR_SEMANTIC_INCOP_TYPE );
+
+            cg_save_result( parserData->lhsId->id );
+
+        break;
+
+        default:
+        break;
+        
+    }
 
 }

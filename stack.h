@@ -6,13 +6,13 @@
 #ifndef STACK_H
 #define STACK_H
 
+#include "scanner.h"
+#include "errorslist.h" 
+#include "expression.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "scanner.h"
-#include "errorslist.h" 
-#include "expression.h"
 
 /**
  * Stack structure
@@ -43,7 +43,7 @@ void s_push ( Stack *stack, Data_type data, pt_terminal symbol );
 /**
  * Pushes item into stack before first occured terminal (only for shift)
  */
-void s_push_before_terminal ( Stack *stack, Token *token, pt_terminal symbol );
+void s_push_before_terminal ( Stack *stack, Data_type data, pt_terminal symbol );
 
 /**
  * 

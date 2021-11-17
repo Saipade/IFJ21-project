@@ -2,7 +2,6 @@
 #define EXPRESSION_H
 
 #include "parser.h"
-#include "stack.h"
 
 #define IS_I(SYMBOL)						    \
 	   SYMBOL == INT						    \
@@ -97,13 +96,7 @@ typedef enum {
 
 } pt_index;
 
-int expression ( Parser_data *parserData );
-int shift ( Parser_data *parserData, Stack *stack, pt_terminal symbol );
-int reduce ( Parser_data *parserData );
-pt_rule check_rule ( int count, Stack_item *item1, Stack_item *item2, Stack_item *item3 );
-int test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_rule rule );
-pt_terminal convert_token_to_symbol ( Token *token );
-pt_index get_pt_index ( pt_terminal symbol );
+
 
 
 
