@@ -1,0 +1,4 @@
+CC=gcc
+
+all:
+  $(CC) -o proj main.c parser.c scanner.c symtable.c string_processor.c code_generator.c 
