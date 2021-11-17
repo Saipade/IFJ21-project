@@ -17,7 +17,7 @@
 FILE *srcF;
 
 // Dynamic string for token               
-Dynamic_string *scannerString;
+Dynamic_string *tokenString;
 
 /** Pre-return number processing
  * @param str dynamic string
@@ -105,28 +105,32 @@ int _keyword_or_id ( Dynamic_string *str, Token *token ) {
 
 }
 
-void _scanner_string ( Dynamic_string *string ) {
+void _source_file ( FILE *file ) {
 
-	scannerString = string;
+    srcF = file;
+
+}
+
+void _token_string ( Dynamic_string *string ) {
+
+	tokenString = string;
 
 }
 
 int get_next_token ( Token *token ) {
 
-    if (!srcF || !scannerString) {
-        return ERR_INTERNAL;
-    }
+    if (!srcF || !tokenString) exit( ERR_INTERNAL );
+    
     int scannerState = SCANNER_STATE_START;
     
     token->type = T_NDA;
-    token->attribute.string = scannerString;
+    token->attribute.string = tokenString;
 
     Dynamic_string str;
     Dynamic_string *scannerString = &str;
     if (!ds_init( scannerString )) return ERR_INTERNAL;
     
     char ESstr[4], c;
-    
     while (true) {
 
         c = getc( srcF );
@@ -134,10 +138,12 @@ int get_next_token ( Token *token ) {
         switch (scannerState) {
 
             case (SCANNER_STATE_START):
-
+                
                 if (c == ' ' || c == '\n' || c == '\t') {
-                    if (c == '\n')
-                    printf("\n");
+                    if (c == '\n') {
+                        printf("\n"); // for debugging resasons, delete before commiting
+                    }
+
                     scannerState = SCANNER_STATE_START;
                 }
 
@@ -154,6 +160,7 @@ int get_next_token ( Token *token ) {
                         ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
+                    
                     scannerState = SCANNER_STATE_ID;
                 } 
                 

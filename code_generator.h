@@ -11,6 +11,18 @@
 
 #include "expression.h"
 
+
+// Append string to result code
+#define ADD_CODE(CODE)														\
+	if (!ds_add_chars( codeString, CODE )) return false
+
+
+// Append string with \n to result code
+#define ADD_LINE(CODE)														\
+	if (!ds_add_chars( codeString, CODE )) return false;					\
+	if (!ds_add_chars( codeString, "\n" )) return false;
+
+
 // Definition of built-in functions
 
 // function reads() : string
@@ -165,25 +177,23 @@
     "\n RETURN"
 
 
+void _code_string ( Dynamic_string *string );
 
+bool cg_start (  );
 
-bool cg_start ();
+bool cg_end (  );
 
 bool cg_function_header ( char *functionId );
 
+bool cg_function_input_type ( char *inputId, Data_type dataType, int index );
+
+bool cg_function_output_type ( Data_type dataType, int index );
+
 bool cg_function_return ( char *functionId );
 
-bool cg_process_data_type ( Data_type dataType );
+bool cg_var_decl ( char *variableId );
 
-bool cg_convert_top_num2int (  );
-
-bool cg_convert_2nd_num2int (  );
-
-bool cg_convert_top_int2num (  );
-
-bool cg_convert_2nd_int2num (  );
-
-bool cg_clear (  );
+bool cg_call ( char *functionId );
 
 bool cg_frame_to_pass_param (  );
 
@@ -197,10 +207,32 @@ bool cg_define_var ( Item_data *item );
 
 bool cg_push ( Token *token );
 
+bool cg_process_data_type ( Data_type dataType );
+
+bool cg_convert_top_num2int (  );
+
+bool cg_convert_2nd_num2int (  );
+
+bool cg_convert_top_int2num (  );
+
+bool cg_convert_2nd_int2num (  );
+
 bool cg_if_header ( int index, int depth );
 
 bool cg_save_result ( char *id );
 
-bool cg_operation ( Data_type type, pt_rule rule );
+bool cg_adds (  );
+
+bool cg_subs (  );
+
+bool cg_muls (  );
+
+bool cg_divs (  );
+
+bool cg_idivs (  );
+
+bool cg_cats (  );
+
+
 
 #endif

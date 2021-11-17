@@ -16,13 +16,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "parser.h"
 #include "errorslist.h"
-#include "scanner.h" 
-#include "symtable.c"
-#include "code_generator.c"
-#include "expression.c"
-#include "stack.c"
+#include "string_processor.h"
+#include "parser.h"
+#include "symtable.h"
+#include "code_generator.h"
+#include "expression.h"
 
 
 int get_next_token_and_check_type ( Parser_data *parserData, Data_type type ) {
@@ -110,7 +109,6 @@ bool parser_data_init ( Parser_data *parserData ) {
     parserData->whereAmI = 0;
     parserData->idCounter = 0;
 
-    
     // symTable[0] - global table; all others are local ones
     st_init( &parserData->symTable[0] );
     // built-in functions
@@ -161,7 +159,7 @@ bool parser_data_init ( Parser_data *parserData ) {
     if (res = st_add_param( tmp->outputTypes, KW_STRING )) return false;
     tmp->ifdec = 1;
     tmp->ifdef = 1;
-
+    
     return true;
 
 }
@@ -175,23 +173,25 @@ int parse (  ) {
     Dynamic_string str1;
     Dynamic_string *scannerString = &str1;
     if (!ds_init( scannerString )) return ERR_INTERNAL;
-    _scanner_string( scannerString );
+    _token_string( scannerString );
 
     Parser_data pData;
     Parser_data *parserData = &pData;
     if (!parser_data_init( parserData )) {
         exit( ERR_INTERNAL );
     }
-    // generate start of program
-    if (!cg_start(  )) return ERR_INTERNAL;
-    // general rule: 
-    // <program> -> <prologue>.<function list>
-    // <prologue>
-    if (res = rule_prologue( parserData )) return res;
+
     Dynamic_string str2;
     Dynamic_string *codeString = &str2;
     if (!ds_init( codeString )) return ERR_INTERNAL;
     _code_string( codeString );
+    // generate start of program
+    if (!cg_start(  )) return ERR_INTERNAL;
+    
+    // general rule: 
+    // <program> -> <prologue>.<function list>
+    // <prologue>
+    if (res = rule_prologue( parserData )) return res;
     // <function list>
     if (res = rule_functionList( parserData )) return res;
 
@@ -200,7 +200,7 @@ int parse (  ) {
     // generate end of main function
     if (!cg_end(  )) return ERR_INTERNAL;
 
-    printf( "END: %d ", res );
+    printf( "END: %d \n", res );
 
     return res; 
 
@@ -219,9 +219,9 @@ int rule_prologue ( Parser_data *parserData ) {
     if (tmp = get_next_token_and_check_keyword ( parserData, KW_REQUIRE )) exit( tmp );
     if (tmp = get_next_token( &parserData->token )) return tmp;
     if (strcmp( parserData->token.attribute.string->str, "ifj21" ) != 0) exit( ERR_SYNTAX );
-
-    if (tmp = get_next_token( &parserData->token )) exit( tmp );
-
+    printf( "(%d %s) ", parserData->token.type, parserData->token.attribute.string->str );
+    if (tmp = get_next_token( &parserData->token )) return tmp;
+    
     return 0;
 
 }
@@ -464,7 +464,9 @@ int rule_statementList ( Parser_data *parserData ) {
         if (res != 0) exit( ERR_SEMANTIC_UNDEF_VAR );
         SEARCH_LOCAL( parserData->token.attribute.string->str );
         if (res != 0) exit( ERR_SEMANTIC_UNDEF_VAR );
-        parserData->lhsId = st_add_id( &parserData->symTable[parserData->currentDepth], parserData->token.attribute.string->str );
+        
+        ADD_LOCAL( parserData->token.attribute.string->str );
+        parserData->lhsId = parserData->currentVar;
         
         if (res = get_next_token_and_check_type( parserData, T_COL )) return res;                       // :
         if (res = get_next_token( &parserData->token )) return res;                                     // TYPE
@@ -564,16 +566,15 @@ int rule_statementList ( Parser_data *parserData ) {
                 if (res = get_next_token( &parserData->token )) return res;
 
                 if (parserData->token.type == T_COM) {
-                    ADD_LINE( "WRITE string@\\010" );
+                    // ADD_LINE( "WRITE string@\\010" );
                 } else return ERR_SYNTAX;
                 
-                ADD_LINE( "WRITE string@\\010" );
+                // ADD_LINE( "WRITE string@\\010" );
 
             } else if (parserData->token.type == T_STR) { // ' ' -> \032
 
-                ADD_CODE( "WRITE string@");
-                ADD_LINE( parserData->token.attribute.string->str );
-                printf("%s", codeString->str );
+                // ADD_CODE( "WRITE string@");
+                // ADD_LINE( parserData->token.attribute.string->str );
 
             }
 

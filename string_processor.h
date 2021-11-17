@@ -4,12 +4,9 @@
 #ifndef STRING_PROCESSOR_H
 #define STRING_PROCESSOR_H
 
-#include "scanner.h"
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-
 
 // For dynamic string memory allocation
 #define DYNAMIC_STR_STARTING_MEM 20
@@ -56,7 +53,7 @@ bool ds_copy ( Dynamic_string *src, Dynamic_string *dst );
  * @param str constant dynamic string
  * @return true in case if success, false - otherwise
  */ 
-bool ds_add_str ( Dynamic_string *dynamicStr, char *str);
+bool ds_add_chars ( Dynamic_string *dynamicStr, char *str);
 
 /** 
  * Frees alocated memory of dynamic string

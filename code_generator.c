@@ -6,7 +6,6 @@
 #include "scanner.h"
 #include "string_processor.h"
 #include "symtable.h"
-#include "parser.h"
 
 #include <string.h>
 
@@ -17,16 +16,6 @@ void _code_string ( Dynamic_string *string ) {
     codeString = string;
 
 }
-
-// Append string to result code
-#define ADD_CODE(CODE)														\
-	if (!ds_add_chars( codeString, CODE )) return false
-
-
-// Append string with \n to result code
-#define ADD_LINE(CODE)														\
-	if (!ds_add_chars( codeString, CODE )) return false;					\
-	if (!ds_add_chars( codeString, "\n" )) return false;
 
 /* .......................................... MAIN FUNCTION FRAME GENERATION .......................................... */
 

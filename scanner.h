@@ -143,6 +143,10 @@ typedef struct {
 
 } Token;
 
+void _source_file ( FILE *file );
+
+void _token_string ( Dynamic_string *scannerString );
+
 /** Main function of scanner, scans tokens, changes their parameters, sends them further
  * @param token token pointer
  * @return 0 in case the token is ok,

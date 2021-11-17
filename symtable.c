@@ -1,69 +1,17 @@
-
-
-
+/**
+ * 
+ * 
+ * 
+ * 
+ */
 
 #include "symtable.h"
 #include "errorslist.h"
 #include "scanner.h"
-#include "parser.h"
+#include "string_processor.h"
 
 #include <stdlib.h>
 #include <string.h>
-
-#define SEARCH_GLOBAL(STR)                                                                                                      \
-    do {                                                                                                                        \
-        parserData->currentFunc = st_search( parserData->symTable[0].rootItem, STR );                                           \
-        if (parserData->currentFunc == NULL)  res = 1;                                                                          \
-    } while (0)
-
-#define SEARCH_GLOBAL_RHS(STR)                                                                                                  \
-    do {                                                                                                                        \
-        parserData->rhsId = st_search( parserData->symTable[0].rootItem, STR );                                                 \
-        if (parserData->rhsId == NULL)  res = 1;                                                                                \
-    } while (0)
-
-#define SEARCH_LOCAL(STR)                                                                                                       \
-    do {                                                                                                                        \
-        parserData->currentVar = st_search( parserData->symTable[parserData->currentDepth].rootItem, STR );                     \
-        if (parserData->currentVar == NULL) res = 1;                                                                            \
-    } while (0)                                                                                                                               
-
-#define SEARCH_GLOBAL_AND_LOCAL(STR)                                                                                            \
-    do {                                                                                                                        \
-        parserData->currentFunc = st_search( parserData->symTable[0].rootItem, STR );                                           \
-        if (parserData->currentFunc == NULL)                                                                                    \
-        parserData->currentVar = st_search( parserData->symTable[parserData->currentDepth].rootItem, STR );                     \
-        if (parserData->currentFunc == NULL && parserData->currentVar == NULL) res = 1;                                         \
-    } while (0)
-
-#define SEARCH_ALL_LOCAL(STR)                                                                                                   \
-    do {                                                                                                                        \
-        for (int i = parserData->currentDepth; i > 0; i--) {                                                                    \
-            parserData->currentVar = st_search( parserData->symTable[i].rootItem, STR );                                        \
-            if (parserData->currentVar != NULL) break;                                                                          \
-        }                                                                                                                       \
-        if (parserData->currentVar == NULL) res = 1;                                                                            \
-    } while (0)
-
-#define SEARCH_EVERYWHERE(STR)                                                                                                  \
-    do {                                                                                                                        \
-        parserData->currentFunc = st_search( parserData->symTable[0].rootItem, STR );                                           \
-        if (parserData->currentFunc == NULL)                                                                                    \
-        for (int i = parserData->currentDepth; i > 0; i--) {                                                                    \
-            parserData->currentVar = st_search( parserData->symtable[i].rootItem, STR )                                         \
-            if (parserData->currentVar != NULL) break                                                                           \
-        }                                                                                                                       \
-        if (parserData->currentFunc == NULL && parserData->currentVar == NULL) {                                                \
-            res = 1;                                                                                                            \
-        }                                                                                                                       \
-    } while (0)
-
-#define ADD_GLOBAL(STR)                                                                                                         \
-        parserData->currentFunc = st_add_id( &parserData->symTable[0], STR )
-
-#define ADD_LOCAL(STR)                                                                                                          \
-        parserData->currentVar  = st_add_id( &parserData->symTable[parserData->currentDepth], STR )
-
 
 void st_init ( Sym_table *symTable ) {
 
