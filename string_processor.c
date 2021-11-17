@@ -11,7 +11,7 @@
 
 #include "string_processor.h"
 #include "errorslist.h"
-#include "scanner.h"
+//#include "scanner.h"
 
 bool ds_init ( Dynamic_string *str ) {
 

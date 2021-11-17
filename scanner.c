@@ -12,9 +12,8 @@
 #include <stdio.h>
 #include <string.h>
 
-
-// Pointer to file that will be scanned
 FILE *srcF;
+
 
 // Dynamic string for token               
 Dynamic_string *scannerString;
@@ -24,6 +23,10 @@ Dynamic_string *scannerString;
  * @param token pointer to token
  * @return 0 in case the token is ok
  */
+void set_source_file(FILE* file){
+    srcF = file;
+}
+
 int _integer_or_number ( Dynamic_string *str, Token *token ) {
 
     char *ptr;
@@ -135,7 +138,7 @@ int get_next_token ( Token *token ) {
 
             case (SCANNER_STATE_START):
 
-                if (c == ' ' || c == '\n') {
+                if (c == ' ' || c == '\n' || c == '\t') {
                     scannerState = SCANNER_STATE_START;
                 }
 

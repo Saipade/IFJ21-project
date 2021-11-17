@@ -2,6 +2,7 @@
 #define SYMTABLE_H
 
 #include "string_processor.h"
+#include"scanner.h"
 
 typedef struct {
 
@@ -31,9 +32,15 @@ typedef struct {
 } Sym_table;
 
 bool st_init ( Sym_table *symTable );
+Item_data *st_add_id ( Sym_table *symTable, char *key );
 Item_data *st_search (Sym_table_itemPtr rootItem, char *key);
 void st_dispose ( Sym_table_itemPtr *rootItem );
 void st_insert ( Sym_table_itemPtr *rootItem, Sym_table_itemPtr newItem );
 void st_print ( Sym_table_itemPtr rootItem );
+Item_data *st_add_id ( Sym_table *symTable, char *key );
+int st_add_param ( Dynamic_string *types, int dataType );
+int st_add_type ( Token *token, Item_data *item );
+
+
 
 #endif

@@ -8,54 +8,47 @@
 
 void s_init ( Stack *stack ) {
 
-    if(stack == NULL){
-        //call error 
-        return;
-    }
-    stack->top = -1;
+    stack->top = NULL;
 
 }
 
 void s_push ( Stack *stack, Data_type data ) {
 
-    if(s_is_full(stack)){
-        //call error code
-        return;
-    }
-    stack->top++;
-    stack->data[stack->top] = data;
+    Stack_item *newItem = malloc( sizeof ( Stack_item ) );
+    if (!newItem) return false;
+
+    newItem->data = data;
+    newItem->nextItem = stack->top;
+    stack->top = newItem;
     
 }
 
 void s_push_after_terminal ( Stack *stack, Data_type data ) {
 
-    return true;//what is it???
+    return true;
 
 }
 
 void s_pop ( Stack *stack ) {
 
-    if(s_is_empty(stack){
-        //call error code
-        return;
-    }else{
-        stack->top--;
+    Stack_item *toPop = stack->top;
+    stack->top = stack->top->nextItem;
+    free( toPop );
 
 }
 
-Data_type *s_top ( Stack *stack ) {
+Stack_item *s_top ( Stack *stack ) {
 
-    if(s_is_empty(stack){
-        //call error code
-        return;
-    }
-       
-    return stack->data[stack->top];
+    return stack->top;
 
 }
 
 void s_dispose ( Stack *stack ) {
 
-    free(stack);
+    while (stack->top) {
+
+        s_pop( stack );       
+
+    }
 
 }

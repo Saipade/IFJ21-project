@@ -154,4 +154,8 @@ typedef struct {
  */
 int get_next_token ( Token *token );
 
+void _scanner_string (Dynamic_string *string);
+
+void set_source_file(FILE* srcF);
+
 #endif

@@ -1,11 +1,7 @@
-
-
-
-
 #include "symtable.h"
 #include "errorslist.h"
 #include "scanner.h"
-#include "parser.h"
+#include"string_processor.h"
 
 #include <stdlib.h>
 #include <string.h>

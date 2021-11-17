@@ -13,16 +13,19 @@
 #include "scanner.h"
 #include "errorslist.h" 
 
-#define MAX_STACK 50
-
 /**
  * Stack structure
  */
+typedef struct SElem {
+
+    Data_type data;
+    struct SElem *nextItem;
+
+} Stack_item;
+
 typedef struct {
     
-    Data_type data[MAX_STACK];
-    
-    int top;
+    Stack_item *top;
 
 } Stack;
 
@@ -34,11 +37,6 @@ void s_init ( Stack *stack );
  * @param data data type
  */
 void s_push ( Stack *stack, Data_type data );
-
-
-
-
-bool s_is_full(Stack *stack);
 
 /**
  * 
@@ -53,14 +51,12 @@ void s_pop ( Stack *stack );
 /**
  * Returns stack's top item
  */
-Data_type s_top ( Stack *stack );
+Stack_item *s_top ( Stack *stack );
 
 /**
  * Discards all remaining items
  */ 
-void s_dispose ( Stack *stack );
-
-bool s_is_empty(Stck *stack);
+void s_dispose ( Stack *stack );   
 
 
 
