@@ -18,15 +18,15 @@
 // S - shift; R - reduction; E - equal; B - blank (not defined rule)
 pt_operation precedenceTable[9][9] = {
 //input|+- |*/ |rel| ( | ) | i | # |.. | $    // top of stack
-	   { R , S , R , S , R , S , S , R , R }, // +-
-	   { R , R , R , S , R , S , S , R , R }, // * / //
-	   { S , S , B , S , R , S , S , S , R }, // rel
-	   { S , S , S , S , E , S , S , S , B }, // (
-	   { R , R , R , B , R , B , B , R , R }, // )
-	   { R , R , R , B , R , B , R , R , R }, // i
+       { R , S , R , S , R , S , S , R , R }, // +-
+       { R , R , R , S , R , S , S , R , R }, // * / //
+       { S , S , B , S , R , S , S , S , R }, // rel
+       { S , S , S , S , E , S , S , S , B }, // (
+       { R , R , R , B , R , B , B , R , R }, // )
+       { R , R , R , B , R , B , R , R , R }, // i
        { R , R , R , S , R , S , B , R , R }, // # // (.. x #) = ????
        { S , S , R , S , R , S , B , S , R }, // ..
-	   { S , S , S , S , B , S , S , S , B }, // $
+       { S , S , S , S , B , S , S , S , B }, // $
 };
 
 int rule_Expression ( Parser_data *parserData );
