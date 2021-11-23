@@ -1,7 +1,7 @@
 /**
- *  PROJECT: Implementation of imperative language translator (IFJ21)
+ *  PROJECT: Implementation of imperative language compiler (IFJ21)
  *  PART: EXPRESSION PROCESSING
- * AUTHOR(S): Maksim Tikhonov (xtikho00)
+ *  AUTHOR(S): Maksim Tikhonov (xtikho00)
  */
 
 #include "errorslist.h"
@@ -15,17 +15,17 @@
 
 // symbol on top has higher priority than next symbol -> shift
 // symbol on top has lower or same priority compared to the next symbol -> reduce
-// S - shift; R - reduction; E - equal; B - blank (not defined rule)
+// S - shift; R - reduce; E - equal; B - blank (not defined rule or SUCCES ($ - $))
 pt_operation precedenceTable[9][9] = {
 //input|+- |*/ |rel| ( | ) | i | # |.. | $    // top of stack
 	   { R , S , R , S , R , S , S , R , R }, // +-
 	   { R , R , R , S , R , S , S , R , R }, // * / //
 	   { S , S , B , S , R , S , S , S , R }, // rel
 	   { S , S , S , S , E , S , S , S , B }, // (
-	   { R , R , R , B , R , B , B , R , R }, // )
+	   { R , R , R , B , R , B , R , R , R }, // )
 	   { R , R , R , B , R , B , R , R , R }, // i
-       { R , R , R , S , R , S , B , R , R }, // # // (.. x #) = ????
-       { S , S , R , S , R , S , B , S , R }, // ..
+       { R , R , R , S , R , S , S , R , R }, // # // (.. x #) = ????
+       { S , S , R , S , R , S , S , S , R }, // ..
 	   { S , S , S , S , B , S , S , S , B }, // $
 };
 
@@ -33,67 +33,97 @@ int rule_Expression ( Parser_data *parserData );
 int shift ( Parser_data *parserData, Stack *stack, pt_terminal symbol );
 int reduce ( Parser_data *parserData );
 pt_rule check_rule ( int count, Stack_item *item1, Stack_item *item2, Stack_item *item3 );
-int test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_rule rule );
-pt_terminal convert_token_to_symbol ( Token *token );
+Data_type test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_rule rule );
+pt_terminal convert_token_2_symbol ( Parser_data *parserData );
+pt_terminal convert_id_2_symbol ( Parser_data *parserData );
 pt_index get_pt_index ( pt_terminal symbol );
+int generate_operation ( pt_rule ruleName );
 int save_result ( Parser_data *parserData, Stack *stack );
 
 Stack st;
 Stack *stack = &st;
 
-pt_terminal convert_token_to_symbol ( Token *token ) {
+/**
+ * @brief Auxiliary function, converts token to symbol
+ * @param parserData contains token information
+ * @return symbol
+ */
+pt_terminal convert_token_2_symbol ( Parser_data *parserData ) {
 
-    switch (token->type) {
+    if (parserData->token.type == T_KEY || parserData->token.type > 22) {
 
-        case T_INT:
-        return INT;
-        case T_NUM:
-        return NUM;
-        case T_STR:
-        return STR;
-        case T_BOO:
-        return BOO;
-        case T_NIL:
-        return NIL;
-        case T_IDE:
-        return IDE;
-        case T_ADD:
-        return ADD;
-        case T_SUB:
-        return SUB;
-        case T_MUL:
-        return MUL;
-        case T_DIV:
-        return DIV;
-        case T_IDI:
-        return IDI;
-        case T_CAT:
-        return CAT;
-        case T_LEN:
-        return LEN;
-        case T_LTH:
-        return LTH;
-        case T_LET:
-        return LET;
-        case T_MTH:
-        return MTH;
-        case T_MET:
-        return MET;
-        case T_EQU:
-        return EQU;
-        case T_NEQ:
-        return NEQ;
-        case T_LBR:
-        return LBR;
-        case T_RBR:
-        return RBR;
-        default:
         return DOL;
+
+    }
+
+    else if ( parserData->token.type == T_IDE) {
+
+        return convert_id_2_symbol( parserData );
+
+    }
+
+    else {
+
+        return parserData->token.type;
 
     }
 
 }
 
+/**
+ * @brief Auxiliary function, converts symbol table item to symbol
+ * @param parserData contains item information
+ * @return symbol
+ */
+pt_terminal convert_id_2_symbol ( Parser_data *parserData ) {
+
+    int res;
+    Item_data *data;
+    Item_data *tmp = parserData->currentVar;
+    SEARCH_ALL_LOCAL( parserData->token.attribute.string->str );
+    parserData->currentVar = tmp;
+    data = parserData->currentVar;
+
+    switch (data->type) {
+
+        case (T_INT):
+
+            return INT;
+
+        break;
+
+        case (T_NUM):
+
+            return NUM;
+
+        break;
+
+        case (T_STR):
+
+            return STR;
+
+        break;
+
+        case (T_NIL):
+
+            return NIL;
+
+        break;
+
+        default:
+
+            return NDA;
+
+        break;
+
+    }
+
+}
+/**
+ * @brief Auxiliary function, converts given symbol to precedence table index
+ * @param symbol symbol
+ * @return precedence table index
+ */
 pt_index get_pt_index ( pt_terminal symbol ) {
 
     switch (symbol) {
@@ -149,51 +179,56 @@ pt_index get_pt_index ( pt_terminal symbol ) {
     }
 }
 
-
+/**
+ * @brief Applies <expression> rule
+ * @param parserData contains all required information
+ * @return error code
+ */
 int rule_Expression ( Parser_data *parserData ) {
 
     int res = 0;
-
+    
     s_init( stack );
     s_push( stack, T_DOL, DOL );
     
-    Stack_item *firstTerminal;
+    pt_terminal firstTerminalSymbol;
     pt_terminal nextSymbol;
     pt_operation currentOperation;
     bool success = false;
-
-    while (1) {
+    //printf("\n");
+    
+    while (!success) {
         
-        firstTerminal = s_top_terminal( stack );
-        nextSymbol = convert_token_to_symbol( &parserData->token );
-        if (nextSymbol == DOL) exit( ERR_SYNTAX );
-        currentOperation = precedenceTable[get_pt_index(firstTerminal->symbol)][get_pt_index(nextSymbol)];
+        firstTerminalSymbol = s_top_terminal_symbol( stack );
+        nextSymbol = convert_token_2_symbol( parserData );
+        currentOperation = precedenceTable[get_pt_index(firstTerminalSymbol)][get_pt_index(nextSymbol)];
+        //printf("%d = %d x %d ", currentOperation, get_pt_index(firstTerminalSymbol), get_pt_index(nextSymbol));
         switch (currentOperation) {
             // Shift
             case S:
-
-                if (res = shift( parserData, stack, nextSymbol )) return res;            
+                
+                if (res = shift( parserData, stack, nextSymbol )) return res;       
                 if (res = get_next_token( &parserData->token )) return res;
-
+                
             break;
             // Reduce
             case R:
 
                 if (res = reduce( parserData )) return res;
-                if (res = get_next_token( &parserData->token )) return res;
-
+                
             break;
             // Equal
             case E:
-                
+                // just push
                 s_push( stack, parserData->token.type, nextSymbol );
                 if (res = get_next_token( &parserData->token )) return res;
 
             break;
             // Blank space
             case B:
-
-                if (nextSymbol == DOL && firstTerminal->symbol == DOL) {
+            
+                //printf("(%d s %d)", nextSymbol, firstTerminalSymbol);
+                if (nextSymbol == DOL && firstTerminalSymbol == DOL) {
                     success = 1;
                     break;
                 }
@@ -204,49 +239,58 @@ int rule_Expression ( Parser_data *parserData ) {
         }
 
     }
-
+    
     if (res = save_result( parserData, stack ));
 
     s_dispose( stack );
 
-    return res;
+    return 0;
 
 }
-
+/**
+ * @brief Precedence table operation, shift
+ * @param parserData contains token information
+ * @param stack stack for symbol to be pushed in
+ * @param symbol symbol to be pushed
+ * @return error code
+ */
 int shift ( Parser_data *parserData, Stack *stack, pt_terminal symbol ) {
 
     int res = 0;
-
+    
     s_push_before_terminal( stack, T_NDA, STOP );
-    s_push( stack, parserData->tokenTable->type, symbol );
-    if (IS_I(symbol)) 
-    cg_push( &parserData->token );
+    s_push( stack, parserData->token.type, symbol );
+    if (IS_I( symbol )) cg_push( &parserData->token );
     
     return 0;
     
 }
 /**
- * Applies one of the rules up to 3 symbols from stack
- * 
+ * @brief Precedence table operation, reduce
+ * @param parserData contains 
  * 
  */
 int reduce ( Parser_data *parserData ) {
 
     int res = 0;
+    
     int count = 0;
     bool found = 0;
+
+    pt_rule resRule;
 
     Stack_item *item1 = NULL;
     Stack_item *item2 = NULL;
     Stack_item *item3 = NULL;
-    Stack_item *tmp = s_top( stack );
 
-    pt_rule ruleName;
     // count symbols before stop sign
+
+    Stack_item *tmp = s_top( stack );
+    
     while (true) {
         
         if (tmp == NULL) break;
-
+        
         if (tmp->symbol == STOP) {
             found = true;
             break;
@@ -264,27 +308,28 @@ int reduce ( Parser_data *parserData ) {
         item1 = stack->top;
         item2 = NULL;
         item3 = NULL;
-        ruleName = check_rule( count, item1, item2, item3 );
+        resRule = check_rule( count, item1, item2, item3 );
     }
 
     else if (count == 2) {
         item1 = stack->top;
         item2 = stack->top->nextItem;
         item3 = NULL;
-        ruleName = check_rule( count, item1, item2, item3 );
+        resRule = check_rule( count, item1, item2, item3 );
     }
 
     else if (count == 3) {
         item1 = stack->top;
         item2 = stack->top->nextItem;
         item3 = stack->top->nextItem->nextItem;
-        ruleName = check_rule( count, item1, item2, item3 );
+        resRule = check_rule( count, item1, item2, item3 );
     }
 
-    if (ruleName == ND_RULE) exit( ERR_SYNTAX );
+    if (resRule == ND_RULE) exit( ERR_SYNTAX );
 
-    Data_type resType = test_semantic( item1, item2, item3, ruleName );
-
+    Data_type resType = test_semantic( item1, item2, item3, resRule );
+    
+    if (res = generate_operation( resRule ));
     // pop out all "consumed" symbols and stop sign
     for (int i = 0; i <= count; i++) s_pop( stack );
     // and push created non-terminal
@@ -295,19 +340,18 @@ int reduce ( Parser_data *parserData ) {
 }
 
 /**
- * Function checks if there is relevant rule for items 1-3
+ * @brief Function checks if there is relevant rule for given items
  * @param count number of stack items before STOP sign 
- * @param item1 next after next after top
+ * @param item1 top item
  * @param item2 next after top 
- * @param item3 top of the stack
- * @return rulename (enum)
+ * @param item3 next after top after top
+ * @return relevant rule
  */
 pt_rule check_rule ( int count, Stack_item *item1, Stack_item *item2, Stack_item *item3 ) {
 
     switch (count) {
         
-        case 1:
-
+        case 1:            
             // E -> i
             if (IS_I( item1->symbol )) {
                 return E_RULE;
@@ -316,7 +360,6 @@ pt_rule check_rule ( int count, Stack_item *item1, Stack_item *item2, Stack_item
         return ND_RULE;
 
         case 2:
-
             // E -> #E
             if (item1->symbol == LEN && item2->symbol == NONTERM) {
                 return LEN_E;
@@ -325,9 +368,8 @@ pt_rule check_rule ( int count, Stack_item *item1, Stack_item *item2, Stack_item
         return ND_RULE;
 
         case 3:
-
             // E -> E operator E
-            if (item1->symbol == NONTERM && item3->symbol == NONTERM)
+            if (item1->symbol == NONTERM && item3->symbol == NONTERM) {
                 // E -> E + E
                      if (item2->symbol == ADD) return E_PLUS_E;
                 // E -> E - E
@@ -353,9 +395,11 @@ pt_rule check_rule ( int count, Stack_item *item1, Stack_item *item2, Stack_item
                 // E -> E ~= E
                 else if (item2->symbol == NEQ) return E_NEQ_E;
             
+            }
+
             else {
                 // E -> ( E )
-                if (item1->symbol == LBR && item2->symbol == NONTERM && item3->symbol == RBR ) return LBR_E_RBR;
+                if (item1->symbol == RBR && item2->symbol == NONTERM && item3->symbol == LBR ) return LBR_E_RBR;
 
             }
         
@@ -368,23 +412,30 @@ pt_rule check_rule ( int count, Stack_item *item1, Stack_item *item2, Stack_item
     }           
 
 }
-
-int test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_rule rule ) {
+/**
+ * @brief Tests if semantics is correct (type compatibility)
+ * @param item1 top item
+ * @param item2 next after top 
+ * @param item3 next after top after top
+ * @param rule acquired rule
+ * @return data type for entire expression
+ */
+Data_type test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_rule rule ) {
 
     switch (rule) {
 
         case E_RULE:
-
-            if (item1->token.type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
-            if (item1->token.type == T_NIL) exit( ERR_NIL );
             
-        return item1->token.type;
+            if (item1->type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
+            if (item1->type == T_NIL) exit( ERR_NIL );
+            
+        return item1->type;
 
         case LEN_E:
 
-            if (item2->token.type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
-            if (item2->token.type == T_NIL) exit( ERR_NIL );
-            if (item2->token.type != T_STR && item2->token.type != T_IDE) exit( ERR_SEMANTIC_INCOP_EXP );
+            if (item2->type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
+            if (item2->type == T_NIL) exit( ERR_NIL );
+            if (item2->type != T_STR && item2->type != T_IDE) exit( ERR_SEMANTIC_INCOP_EXP );
         
         return INT;
 
@@ -392,16 +443,16 @@ int test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_
         case E_MINUS_E:
         case E_MUL_E:
 
-            if (item1->token.type == T_NDA || item3->token.type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
-            if (item1->token.type == T_NIL || item3->token.type == T_NIL) exit( ERR_NIL );
-            if (item1->token.type == T_INT && item3->token.type == T_INT) return INT;
-            else if (item1->token.type == T_NUM && item3->token.type == T_NUM) return NUM;
+            if      (item1->type == T_NDA || item3->type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
+            else if (item1->type == T_NIL || item3->type == T_NIL) exit( ERR_NIL );
+            else if (item1->type == T_INT && item3->type == T_INT) return INT;
+            else if (item1->type == T_NUM && item3->type == T_NUM) return NUM;
             else {
-                    // TODO
-                if        (item1->token.type == T_INT) {    // convert 1. operand to num
-                    
-                } else if (item3->token.type == T_INT) {    // convert 2. operand to num
-                    
+                
+                if        (item1->type == T_INT) {    // convert 1. operand to num
+                    cg_convert_1st_int2num(  );
+                } else if (item3->type == T_INT) {    // convert 2. operand to num
+                    cg_convert_2nd_int2num(  );
                 }
 
             }
@@ -410,33 +461,40 @@ int test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_
 
         case E_DIV_E:
 
-            if (item1->token.type == T_NDA || item3->token.type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
-            if (item1->token.type == T_NIL || item3->token.type == T_NIL) exit( ERR_NIL );
-            if (item1->token.type != T_NUM || item3->token.type != T_NUM) exit( ERR_SEMANTIC_INCOP_EXP );
+            if      (item1->type == T_NDA || item3->type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
+            else if (item1->type == T_NIL || item3->type == T_NIL) exit( ERR_NIL );
+            else if (item1->type == T_NUM && item3->type == T_NUM) return NUM;
             else {
 
-                if        (item1->token.type == T_INT) {    // convert 1. operand to num
-                    
-                } else if (item3->token.type == T_INT) {    // convert 2. operand to num
-                    
+                if (item1->type == INT && item3->type == INT) {     // convert both operands to num
+                    cg_convert_both_int2num (  );
+                }
+                else if (item1->type == T_INT) {                    // convert 1. operand to num
+                    cg_convert_1st_int2num(  );
+                } 
+                else if (item3->type == T_INT) {                    // convert 2. operand to num
+                    cg_convert_2nd_int2num(  );
                 }
 
             }
-            // to convert or to not convert? atm - no
 
         return NUM;
 
         case E_IDIV_E:
 
-            if (item1->token.type == T_NDA || item3->token.type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
-            if (item1->token.type == T_NIL || item3->token.type == T_NIL) exit( ERR_NIL );
-            if (item1->token.type != T_INT || item3->token.type != T_INT) exit( ERR_SEMANTIC_INCOP_EXP );
+            if (item1->type == T_NDA || item3->type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
+            if (item1->type == T_NIL || item3->type == T_NIL) exit( ERR_NIL );
+            if (item1->type == T_INT && item3->type == T_INT) return INT;
             else {
 
-                if        (item1->token.type == T_NUM) {    // convert 1. operand to int
-                    
-                } else if (item3->token.type == T_NUM) {    // convert 2. operand to int
-                    
+                if (item1->type == T_NUM && item3->type == T_NUM) { // converts both operands to int
+                    cg_convert_both_int2num(  );
+                }
+                else if (item1->type == T_NUM) {                    // converts 1. operand to int
+                    cg_convert_1st_num2int(  );
+                } 
+                else if (item3->type == T_NUM) {                    // converts 2. operand to int
+                    cg_convert_2nd_num2int(  );
                 }
 
             }
@@ -444,18 +502,17 @@ int test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_
         return INT;
 
         case LBR_E_RBR:
-
-            if (item2->token.type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
-            if (item2->token.type == T_NIL) exit( ERR_NIL );
+            
+            if (item2->type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
+            if (item2->type == T_NIL) exit( ERR_NIL );
         
-        return item2->token.type;
+        return item2->type;
 
         case E_CAT_E:
 
-            if (item1->token.type == T_NDA || item3->token.type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
-            if (item1->token.type == T_NIL || item3->token.type == T_NIL) exit( ERR_NIL );
-            if (item1->token.type != T_STR && item1->token.type != T_IDE
-             || item3->token.type != T_STR && item3->token.type != T_IDE) exit( ERR_SEMANTIC_INCOP_EXP );
+            if (item1->type == T_NDA || item3->type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
+            if (item1->type == T_NIL || item3->type == T_NIL) exit( ERR_NIL );
+            if (item1->type != T_STR && item3->type != T_STR) exit( ERR_SEMANTIC_INCOP_EXP );
 
         return STR;
 
@@ -464,14 +521,14 @@ int test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_
         case E_MTH_E:
         case E_MET_E:
 
-            if (item1->token.type == T_NDA || item3->token.type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
-            if (item1->token.type == T_NIL || item3->token.type == T_NIL) exit( ERR_NIL );
-            if (item1->token.type != item3->token.type) {
-                if (item1->token.type > item3->token.type) {
-                    // convert 1. to NUM
+            if (item1->type == T_NDA || item3->type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
+            if (item1->type == T_NIL || item3->type == T_NIL) exit( ERR_NIL );
+            if (item1->type != item3->type) {
+                if (item1->type > item3->type) {
+                    cg_convert_1st_num2int(  );
                 }
-                else if (item3->token.type < item3->token.type) {
-                    // convert 2. to NUM
+                else if (item1->type < item3->type) {
+                    cg_convert_2nd_num2int(  );
                 }
             }
 
@@ -480,14 +537,14 @@ int test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_
         case E_EQU_E:
         case E_NEQ_E:
 
-            if (item1->token.type == T_NDA || item3->token.type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
-            if (item1->token.type != T_NIL && item3->token.type != T_NIL) {
-                if (item1->token.type != item3->token.type) {
-                    if (item1->token.type > item3->token.type) {
-                        // convert 1. to NUM
+            if (item1->type == T_NDA || item3->type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
+            if (item1->type != T_NIL && item3->type != T_NIL) {
+                if (item1->type != item3->type) {
+                    if (item1->type > item3->type) {
+                        cg_convert_1st_num2int(  );
                     }
-                    else if (item3->token.type < item3->token.type) {
-                        // convert 2. to NUM
+                    else if (item1->type < item3->type) {
+                        cg_convert_2nd_num2int(  );
                     }
                 }
 
@@ -499,39 +556,97 @@ int test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_
 
 
 }
+/**
+ * @brief Generates operation according to rule
+ * @param ruleName given rule
+ * @return error code
+ */
+int generate_operation ( pt_rule ruleName ) {
+
+    int res = 0;
+
+    switch (ruleName) {
+
+        case (LEN_E):
+            cg_lens(  );
+        break;
+        case (E_PLUS_E):
+            cg_adds(  );
+        break;
+        case (E_MINUS_E):
+            cg_subs(  );
+        break;
+        case (E_MUL_E):
+            cg_muls(  );
+        break;
+        case (E_DIV_E):
+            cg_divs(  );
+        break;
+        case (E_IDIV_E):
+            cg_idivs(  );
+        break;
+        case (E_CAT_E):
+            cg_cats(  );
+        break;
+        case (E_LTH_E):
+            cg_lths(  );
+        break;
+        case (E_LET_E):
+            cg_lets(  );
+        break;
+        case (E_MTH_E):
+            cg_mths(  );
+        break;
+        case (E_MET_E):
+            cg_mets(  );
+        break;
+        case (E_EQU_E):
+            cg_equs(  );
+        break;
+        case (E_NEQ_E):
+            cg_neqs(  );
+        break;
+
+    }
+
+    return 0;
+
+}
 
 /**
- * @brief Saves expression result 
- * @param parserData current data
+ * @brief Saves expression result to left-hand side identifier
+ * @param parserData contains required information
  * @param stack stack for symbols
+ * @return 
  */
 int save_result ( Parser_data *parserData, Stack *stack ) {
 
     if (!parserData->lhsId) return 0;
 
     int res = 0;
-
-    Stack_item *result = s_top( stack );
+    
+    pt_terminal resultType = s_top_type( stack );
+    
     // check variable's and expression's types compatibility
-    switch (result->symbol) {
+    switch (resultType) {
 
         case (INT) :
 
             if (parserData->lhsId->type == NUM) {
-                cg_convert_top_num2int(  );
+                cg_convert_1st_int2num(  );
             }            
-
-            cg_save_result( parserData->lhsId->id );
-
+            
+            cg_pop_to( parserData->lhsId->id );
+            
         break;
 
         case (T_NUM):
 
             if (parserData->lhsId->type == INT) {
-                cg_convert_top_int2num(  );
+                cg_convert_1st_num2int(  );
             }
 
-            cg_save_result( parserData->lhsId->id );
+            cg_pop_to( parserData->lhsId->id );
 
         break;
 
@@ -539,7 +654,7 @@ int save_result ( Parser_data *parserData, Stack *stack ) {
 
             if (parserData->lhsId->type != T_STR) exit( ERR_SEMANTIC_INCOP_TYPE );
 
-            cg_save_result( parserData->lhsId->id );
+            cg_pop_to( parserData->lhsId->id );
 
         break;
 
@@ -547,7 +662,7 @@ int save_result ( Parser_data *parserData, Stack *stack ) {
 
             if (parserData->lhsId->type != T_BOO) exit( ERR_SEMANTIC_INCOP_TYPE );
 
-            cg_save_result( parserData->lhsId->id );
+            cg_pop_to( parserData->lhsId->id );
 
         break;
 

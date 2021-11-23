@@ -101,19 +101,19 @@ int st_add_param ( Dynamic_string *types, int dataType ) {
 
         case (KW_INTEGER):
 
-            if (!ds_add_char( types, '0' )) return ERR_INTERNAL;
+            if (!ds_add_char( types, 'i' )) return ERR_INTERNAL;
 
             break;
         
         case (KW_NUMBER):
 
-            if (!ds_add_char( types, '1' )) return ERR_INTERNAL;
+            if (!ds_add_char( types, 'n' )) return ERR_INTERNAL;
 
         break;
 
         case (KW_STRING):
 
-            if (!ds_add_char( types, '2' )) return ERR_INTERNAL;
+            if (!ds_add_char( types, 's' )) return ERR_INTERNAL;
 
         break;
 
@@ -142,7 +142,7 @@ int st_add_type ( Token *token, Item_data *item ) {
     switch (token->attribute.keyword) {
 
         case (KW_INTEGER):
-
+        
             item->type = T_INT;
 
         break;
@@ -208,12 +208,12 @@ Item_data *st_search ( Sym_table_itemPtr rootItem, char *key ) {
 }  
 
 void st_dispose ( Sym_table_itemPtr *rootItem ) {
-
+    
     if ( rootItem != NULL ) {
 
-        st_dispose( &(*rootItem)->leftItem  );
+        if ((*rootItem)->leftItem) st_dispose( &(*rootItem)->leftItem  );
 
-        st_dispose( &(*rootItem)->rightItem );
+        if ((*rootItem)->rightItem) st_dispose( &(*rootItem)->rightItem );
         
         free( (*rootItem)->key );
         free( (*rootItem)->data.inputTypes->str );
@@ -229,7 +229,7 @@ void st_dispose ( Sym_table_itemPtr *rootItem ) {
         (*rootItem)->data.outputTypes = NULL;
         (*rootItem) = NULL;
 
-    }
+    } 
 
 }
 

@@ -20,7 +20,7 @@
 typedef struct SElem {
 
     pt_terminal symbol;
-    Token token;
+    Data_type type;
     struct SElem *nextItem;
 
 } Stack_item;
@@ -46,11 +46,6 @@ void s_push ( Stack *stack, Data_type data, pt_terminal symbol );
 void s_push_before_terminal ( Stack *stack, Data_type data, pt_terminal symbol );
 
 /**
- * 
- */
-void s_push_before_terminal ( Stack *stack, Data_type data, pt_terminal symbol );
-
-/**
  * Discard one stack item
  */
 void s_pop ( Stack *stack );
@@ -60,15 +55,20 @@ void s_pop ( Stack *stack );
  */
 Stack_item *s_top ( Stack *stack );
 
+Data_type s_top_type ( Stack *stack );
+
 /**
  * Returns first terminal
  */
-Stack_item *s_top_terminal ( Stack *stack );
+int s_top_terminal_symbol ( Stack *stack );
 
 /**
  * Discards all remaining items
  */ 
 void s_dispose ( Stack *stack );   
+
+
+void s_dispose_and_print ( Stack *stack );
 
 
 

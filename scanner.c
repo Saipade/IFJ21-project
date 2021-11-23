@@ -1,8 +1,6 @@
 /*
 
 */
-#ifndef SCANNER_C
-#define SCANNER_C
 
 #include "errorslist.h"
 #include "scanner.h"
@@ -19,10 +17,11 @@ FILE *srcF;
 // Dynamic string for token               
 Dynamic_string *tokenString;
 
-/** Pre-return number processing
+/** 
+ * @brief Pre-return number processing
  * @param str dynamic string
  * @param token pointer to token
- * @return 0 in case the token is ok
+ * @return error code
  */
 int _integer_or_number ( Dynamic_string *str, Token *token ) {
 
@@ -47,11 +46,11 @@ int _integer_or_number ( Dynamic_string *str, Token *token ) {
     }
 
 }
-/** Pre-return identifier/keyword processing
+/** 
+ * @brief Pre-return identifier/keyword processing
  * @param str dynamic string
  * @param token pointer to token
- * @return 0 in case the token is ok
- *         99 in case of internal error
+ * @return error code
  */
 int _keyword_or_id ( Dynamic_string *str, Token *token ) {
 
@@ -139,8 +138,8 @@ int get_next_token ( Token *token ) {
 
             case (SCANNER_STATE_START):
                 
-                if (c == ' ' || c == '\n' || c == '\t') {
-                    if (c == '\n') {
+                if (c == ' ' || c == '\n' || c == '\t' || c == 13) {
+                    if (c == '\n' || c == 13) {
                         printf("\n"); // for debugging resasons, delete before commiting
                     }
 
@@ -400,9 +399,9 @@ int get_next_token ( Token *token ) {
                     }
                 } 
 
-                else { 
+                else {
                     ungetc( c, srcF );
-                    return _keyword_or_id( scannerString, token );
+                    return _keyword_or_id( scannerString, token );;
                 }
                 
             break;
@@ -539,21 +538,21 @@ int get_next_token ( Token *token ) {
                 }
 
                 else if (c == EOF) {
-                    ds_free( scannerString );
-                    return ERR_LEXICAL;
+                    ungetc( c, srcF );
+                    scannerState = SCANNER_STATE_START;
                 }
 
             break;
 
             case (SCANNER_STATE_COMMENTBLOCK_EXIT): // --[[ X ]
 
-                if (c == '[') {
+                if (c == ']') {
                     scannerState = SCANNER_STATE_START;
                 }
 
                 else if (c == EOF) {
-                    ds_free( scannerString );
-                    return ERR_LEXICAL;
+                    ungetc( c, srcF );
+                    scannerState = SCANNER_STATE_START;
                 }
 
                 else {
@@ -600,13 +599,23 @@ int get_next_token ( Token *token ) {
 
                 if (c >= 32) {
 
-                    if (c == '"') {
+                    if (c == 32) {
+                        char *tmpStr = "\\032";
+                        if (!ds_add_chars( scannerString, tmpStr )) {
+                            ds_free( scannerString );
+                            return ERR_INTERNAL;
+                        }
+                        scannerState = SCANNER_STATE_STRING;
+                    }
+
+                    else if (c == '"') {
                         if (!ds_copy( scannerString, token->attribute.string )) {
                             ds_free( scannerString );
                             return ERR_INTERNAL;
                         }
                         token->type = T_STR;
-                        ds_free( scannerString );
+                        ds_free( scannerString ); 
+                        printf("(%s )\n", token->attribute.string->str); // TO DELETE
                         return SCAN_OK;
                     }
 
@@ -616,8 +625,8 @@ int get_next_token ( Token *token ) {
 
                     else {
                         if (!ds_add_char( scannerString, c )) {
-                        ds_free( scannerString );
-                        return ERR_INTERNAL;
+                            ds_free( scannerString );
+                            return ERR_INTERNAL;
                         }
                     }
                     
@@ -633,8 +642,8 @@ int get_next_token ( Token *token ) {
                 if (c >= 32) {
 
                     if (c == '"') {
-                        c = '"';
-                        if  (!ds_add_char( scannerString, c )) {
+                        char *tmpStr = "\\034";
+                        if (!ds_add_chars( scannerString, tmpStr )) {
                             ds_free( scannerString );
                             return ERR_INTERNAL;
                         }
@@ -642,8 +651,8 @@ int get_next_token ( Token *token ) {
                     }
 
                     else if (c == 'n') {
-                        c = '\n';
-                        if (!ds_add_char( scannerString, c )) {
+                        char *tmpStr = "\\010";
+                        if (!ds_add_chars( scannerString, tmpStr )) {
                             ds_free( scannerString );
                             return ERR_INTERNAL;
                         }
@@ -651,8 +660,8 @@ int get_next_token ( Token *token ) {
                     }
 
                     else if (c == 't') {
-                        c = '\t';
-                        if (!ds_add_char( scannerString, c )) {
+                        char *tmpStr = "\\009";
+                        if (!ds_add_chars( scannerString, tmpStr )) {
                             ds_free( scannerString );
                             return ERR_INTERNAL;
                         }
@@ -660,8 +669,8 @@ int get_next_token ( Token *token ) {
                     }
 
                     else if (c == '\\') {
-                        c = '\\';
-                        if (!ds_add_char( scannerString, c )) {
+                        char *tmpStr = "\\092";
+                        if (!ds_add_chars( scannerString, tmpStr )) {
                             ds_free( scannerString );
                             return ERR_INTERNAL;
                         }
@@ -746,7 +755,6 @@ int get_next_token ( Token *token ) {
 
                 if (c >= '1' && c <= '9') {
                     ESstr[2] = c;
-
                     char *ptr;
                     int tmp = (int) strtol( ESstr, &ptr, 10 );
                     c = (char) tmp;
@@ -769,7 +777,7 @@ int get_next_token ( Token *token ) {
 
                 if (c >= '0' && c <= '9') {
                     ESstr[2] = c;
-
+                    
                     char *ptr;
                     int tmp = (int) strtol( ESstr, &ptr, 10 );
                     c = (char) tmp;
@@ -814,4 +822,3 @@ int get_next_token ( Token *token ) {
         }
     }
 }
-#endif

@@ -51,8 +51,9 @@ typedef enum {
     LBR,                // (
     RBR,                // )
 
-    STOP,               // stop sign
     DOL,                // $
+    STOP,               // stop sign
+    
 
 } pt_terminal;
 
@@ -76,7 +77,7 @@ typedef enum {
     E_EQU_E,          // E -> E == E
     E_NEQ_E,          // E -> E ~= E
 
-    LBR_E_RBR,         // E -> ( E )
+    LBR_E_RBR,        // E -> ( E )
 
     ND_RULE,
 

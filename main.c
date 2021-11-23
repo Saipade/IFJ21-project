@@ -11,7 +11,6 @@
 
 int main ( int argc, char *argv[] ) {
 
-
     FILE *srcF;
 
     srcF = stdin;
@@ -20,6 +19,6 @@ int main ( int argc, char *argv[] ) {
 
     parse (  );
 
-
     return 0;
+
 }

@@ -28,7 +28,6 @@ typedef struct {
     Token token;            // token got by get_next_token func
 
     Sym_table symTable[10]; // 
-    Token tokenTable[10];   // for multiple assignment
 
     Item_data *lhsId;       // left-hand  side func/var identifier
     Item_data *rhsId;       // right-hand side func/var identifier
@@ -62,7 +61,9 @@ int rule_Write ( Parser_data *parserData );
 int rule_Value ( Parser_data *parserData );
 int rule_Expression ( Parser_data *parserData );
 int rule_expressionList ( Parser_data *parserData );
-
+int rule_optionalDefenition ( Parser_data *parserData );
+int rule_writeArgumentList( Parser_data *parserData );
+int rule_otherWriteArgument( Parser_data *parserData );
 
 
 #endif

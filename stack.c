@@ -12,23 +12,27 @@ void s_init ( Stack *stack ) {
 
 }
 
-void s_push ( Stack *stack, Data_type data, pt_terminal symbol ) {
+void s_push ( Stack *stack, Data_type type, pt_terminal symbol ) {
 
     Stack_item *newItem = malloc( sizeof ( Stack_item ) );
     if (!newItem) return;
 
     newItem->nextItem = stack->top;
+    newItem->symbol = symbol;
+    newItem->type = type;
     stack->top = newItem;
+    
     
 }
 
-void s_push_before_terminal ( Stack *stack, Data_type data, pt_terminal symbol ) {
+void s_push_before_terminal ( Stack *stack, Data_type type, pt_terminal symbol ) {
 
     Stack_item *newItem = malloc( sizeof ( Stack_item ) );
     if (!newItem) return;
     Stack_item *tmp1 = stack->top;
-    Stack_item *tmp2;
+    Stack_item *tmp2 = NULL;
     newItem->symbol = symbol;
+    newItem->type = type;
 
     while (1) {
 
@@ -71,23 +75,41 @@ Stack_item *s_top ( Stack *stack ) {
 
 }
 
-Stack_item *s_top_terminal ( Stack *stack ) {
+Data_type s_top_type ( Stack *stack ) {
+
+    return stack->top->type;
+
+}
+
+int s_top_terminal_symbol ( Stack *stack ) {
 
     Stack_item *topTerminal = stack->top;
     
-    while (1) {
+    while (topTerminal) {
 
-        if (topTerminal->symbol != NONTERM && topTerminal->symbol != STOP) return topTerminal;
+        if (topTerminal->symbol != NONTERM && topTerminal->symbol != STOP) break;
         topTerminal = topTerminal->nextItem;
 
     }
+
+    return topTerminal->symbol;
 
 }
 
 void s_dispose ( Stack *stack ) {
 
     while (stack->top) {
+        
+        s_pop( stack );       
 
+    }
+
+}
+// for debugging reasons
+void s_dispose_and_print ( Stack *stack ) {
+    printf("(symbol type)");
+    while (stack->top) {
+        printf("(%d %d)", stack->top->symbol, stack->top->type);
         s_pop( stack );       
 
     }
