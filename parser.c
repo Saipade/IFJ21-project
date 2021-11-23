@@ -214,6 +214,7 @@ int rule_prologue ( Parser_data *parserData ) {
     if (tmp = get_next_token( &parserData->token )) return tmp;
     if (strcmp( parserData->token.attribute.string->str, "ifj21" ) != 0) exit( ERR_SYNTAX );
     printf( "(%d %s) ", parserData->token.type, parserData->token.attribute.string->str );
+    // TUTA
     if (tmp = get_next_token( &parserData->token )) return tmp;
     
     return 0;
