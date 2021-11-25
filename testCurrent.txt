@@ -4,7 +4,6 @@ function main(a : integer, b : string) : string, integer -- 15
 	local int3 : integer
 	int1, int3 = 10*10, 52
 	local int2 : integer = 0
-	local num1 : number = 35.2
 	--int1 = int1 + int2
 	local str1 : string = "rtrgfgf"
 	local ffg : string = " "

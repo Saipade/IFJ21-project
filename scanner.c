@@ -406,14 +406,15 @@ int get_next_token ( Token *token ) {
                 
             break;
 
-            // 2-SIGNED RELATIONSHIPS OPERATORS
+            // RELATIONSHIPS OPERATORS
             case (SCANNER_STATE_MT):
 
-                if (c == '=') { 
+                if (c == '=') {
                     token->type = T_MET;
                 }
 
-                else { 
+                else {
+
                     ungetc( c, srcF );
                     token->type = T_MTH;
                     

@@ -465,7 +465,7 @@ bool cg_save_to ( Parser_data *parserData ) {
     char strDepth[2];
     sprintf( strDepth, "%d", parserData->currentDepth );
     ADD_CODE( "MOVE " );
-    ADD_CODE( "LG@%" );
+    ADD_CODE( "LF@%" );
     ADD_CODE( strDepth );
     ADD_CODE( "%" );
     ADD_CODE( parserData->lhsId->id );
