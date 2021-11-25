@@ -1,5 +1,13 @@
 require "ifj21"
-function main()
-	local ffg : string = "\ngfg fgf\\" 
- 	local vysl : integer = (5+10)/10
+function main(a : integer, b : string) : string, integer -- 15	
+	local int1 : integer = 52+102/14
+	local int3 : integer
+	int1, int3 = 10*10, 52
+	local int2 : integer = 0
+	local num1 : number = 35.2
+	--int1 = int1 + int2
+	local str1 : string = "rtrgfgf"
+	local ffg : string = " "
+	local str2 : string = "HELLO\nWORLD"
+	write(str1..ffg..str2)
 end

@@ -83,6 +83,8 @@ typedef enum {
     KW_ORD,                                 // ord
     KW_CHR,                                 // chr
 
+    ANY,                                    // not an actual keyword. It's data type for write input
+
 } Keyword;
 
 // Token attribute

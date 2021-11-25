@@ -1,44 +1,40 @@
-<program> -> <prologue> <program_body>
+0.<program> -> <prologue> <function list>
 
-<prologue> -> require "ifj21"
+1.<prologue> -> require "ifj21"
 
-<program_body> -> <program_statement> <program_body>
-<program_body> -> EOF
-<program statment> -> <function def.>  <function list>
-<program statment> -> <function decl.>  <function list>
-<program statment> -> expr
-<program statment> -> e
+2.<function list> -> <function declaration> <function list>
+3.<function list> -> <function definition> <function list>
+4.<function list> -> EOF
 
+4.<function declaration> -> GLOBAL ID : FUNCTION ( <declaration params> ) <output>
+5-6.<declaration params> -> e | type <other declaration param>
+7-8.<other declaration param> -> e | , type <other declaration param>
 
-<function def> -> FUNCTION ID (<fundef_params> <function return> <function_body>
+9.<function definition> -> FUNCTION ID ( <definition params> ) <output> <statement list> END
+10-11.<definition params> -> e | <param> <other definition param>
+12-13.<other definition param> -> e | , <param> <other definition param>
+14.<param> -> ID : type
 
-<function return> -> )
-<function return> -> : <freturn_list>
+15.<output> -> type <other output type>
+16-17.<other output type> -> e | , type <other output type>
 
-<freturn_list> -> TYPE <other_types>
-<other_types> -> e | , TYPE <other_types>
+-------
 
+18.<statement list> -> e | <statement> <statement list>
 
-<function body> -> <function statement> <function body>
-<function body> -> END
+19.<statement> -> WRITE (<write argument list>)
+20.<write argument list> -> <expression> <other write argument>
+21-22.<other write argument> -> e | , <expression> <other write argument>
 
-<function statement> -> LOCAL ID : TYPE <optional_def>
-<optional_def> -> = expr
+23.<statement list> -> <ID list> <assignment values>
+24.<ID list> -> ID <other ID>
+25-26.<other ID> -> e | , ID <other ID>
+27.<assignment values> -> <assignment value> <other assignment value>
+28-29.<other assignment value> -> e | , <assignment value> <other assignment value>
+30-31.<assignment value> -> ID(<function call params>) | <expression>
 
-<function statement> -> <id list> = <value list> 
-<value list> -> ID (<expr. list>) . <value list>
-<value list> -> ε | , ID (<expr. list>) . <value list>
-
-<statement list> -> <id list> = <value list>
-<statement list> -> <id list> = ID (<expr. list>) 
-<statement list> -> ID (<expr. list>)
-
-<statement list> -> IF <expression> THEN <statement list> ELSE <statement list> END
-<statement list> -> WhILE <expression> DO <statement list> END
-
-<statement list> -> RETURN <expr. list>
-<statement list> -> WRITE (<expr list>)
-
-<statement list> -> ε
+32. <function call params> -> <call param> <other call param>
+33-34. <other call param> -> e | , <call param> <other call param>
+35. <call param>
 
 TBD

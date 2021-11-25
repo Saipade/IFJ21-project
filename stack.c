@@ -22,7 +22,6 @@ void s_push ( Stack *stack, Data_type type, pt_terminal symbol ) {
     newItem->type = type;
     stack->top = newItem;
     
-    
 }
 
 void s_push_before_terminal ( Stack *stack, Data_type type, pt_terminal symbol ) {

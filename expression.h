@@ -98,6 +98,7 @@ typedef enum {
 } pt_index;
 
 
+int rule_expression ( Parser_data *parserData );
 
 
 

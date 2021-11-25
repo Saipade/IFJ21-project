@@ -19,6 +19,98 @@
 #include "code_generator.h"
 #include "expression.h"
 
+void q_init ( Queue *queue ) {
+
+    queue->top = NULL;
+    queue->end = NULL;
+
+}
+
+void q_push ( Queue *queue, Item_data *item ) {
+
+    Queue_item *newItem = malloc( sizeof ( Queue_item ) );
+    if (!newItem) return;
+
+    newItem->data = item;
+    newItem->next = NULL;
+
+    if (queue->top == NULL) queue->top = newItem;
+    else queue->end->next = newItem;
+    queue->end = newItem;
+
+}
+
+Item_data *q_pop ( Queue *queue ) {
+
+    Item_data *returnData;
+
+    if (queue->top) {
+
+        Item_data *returnData = queue->top->data;
+        Queue_item *itemToDelete = queue->top;
+        if (queue->top == queue->end) {
+            queue->end = NULL;
+        }
+
+        queue->top = queue->top->next;
+        free( itemToDelete );
+
+        return returnData;
+
+    }
+
+    return NULL;
+
+}
+
+void q_dispose( Queue *queue ) {
+
+    while (queue->top) {
+
+        q_pop( queue );
+
+    }
+
+}
+
+Data_type get_param_or_retval_type ( Item_data *function, bool mode, int pos ) {
+
+    int res = 0;
+
+    if (!mode) res = function->inputTypes->str[pos];
+    else res = function->outputTypes->str[pos];
+
+    switch (res) {
+
+        case ('i'):
+            return T_INT;
+        case ('n'):
+            return T_NUM;
+        case ('s'):
+            return T_STR;
+        default:
+            return T_NDA; 
+
+    }
+    
+}
+
+char convert_data_type_to_char ( Keyword dataType ) {
+
+    switch (dataType) {
+
+        case KW_INTEGER:
+            return 'i';
+        case KW_NUMBER:
+            return 'n';
+        case KW_STRING:
+            return 's';
+        default:
+            return ERR_SYNTAX;
+
+    }
+    
+}
 
 int get_next_token_and_check_type ( Parser_data *parserData, Data_type type ) {
     
@@ -52,7 +144,6 @@ int get_next_token_and_check_keyword ( Parser_data *parserData, Keyword keyword 
 
 }
 
-
 int get_next_token_and_give_keyword ( Parser_data *parserData ) {
 
     int tmp;
@@ -68,15 +159,21 @@ int get_next_token_and_apply_rule ( Parser_data *parserData, char *rulename ) {
     if (tmp = get_next_token( &parserData->token )) return tmp;
     printf( "(%d -) ", parserData->token.type );
 
-    if      (!strcmp( rulename, "rule_paramList" ))         { if (tmp = rule_paramList( parserData )) return tmp; }
-    else if (!strcmp( rulename, "rule_Expression" ))        { if (tmp = rule_Expression( parserData )) return tmp; }
-    else if (!strcmp( rulename, "rule_expressionList" ))    { if (tmp = rule_expressionList( parserData )) return tmp; }
-    else if (!strcmp( rulename, "rule_statementList"))      { if (tmp = rule_statementList( parserData )) return tmp; }
-    else if (!strcmp( rulename, "rule_optionalDefenition")) { if (tmp = rule_optionalDefenition( parserData )) return tmp; }
-    else if (!strcmp( rulename, "rule_Value"))              { if (tmp = rule_Value( parserData )) return tmp; }
-    else if (!strcmp( rulename, "rule_writeArgumentList" )) { if (tmp = rule_writeArgumentList( parserData )) return tmp; }
-    else if (!strcmp( rulename, "rule_otherWriteArgument" )){ if (tmp = rule_otherWriteArgument( parserData )) return tmp; }
-    
+         if (!strcmp( rulename, "rule_expression" ))            { if (tmp = rule_expression( parserData )) return tmp; }
+    else if (!strcmp( rulename, "rule_statementList"))          { if (tmp = rule_statementList( parserData )) return tmp; }
+    else if (!strcmp( rulename, "rule_optionalDefinition"))     { if (tmp = rule_optionalDefinition( parserData )) return tmp; }
+    else if (!strcmp( rulename, "rule_writeArgumentList" ))     { if (tmp = rule_writeArgumentList( parserData )) return tmp; }
+    else if (!strcmp( rulename, "rule_otherWriteArgument" ))    { if (tmp = rule_otherWriteArgument( parserData )) return tmp; }
+    else if (!strcmp( rulename, "rule_declarationParams" ))     { if (tmp = rule_declarationParams( parserData )) return tmp; }
+    else if (!strcmp( rulename, "rule_output" ))                { if (tmp = rule_output( parserData )) return tmp; }
+    else if (!strcmp( rulename, "rule_definitionParams" ))      { if (tmp = rule_definitionParams( parserData )) return tmp; }
+    else if (!strcmp( rulename, "rule_definitionParam" ))       { if (tmp = rule_definitionParam( parserData )) return tmp; }
+    else if (!strcmp( rulename, "rule_value"))                  { if (tmp = rule_value( parserData )) return tmp; }
+    else if (!strcmp( rulename, "rule_IDList" ))                { if (tmp = rule_IDList( parserData )) return tmp; }
+    else if (!strcmp( rulename, "rule_otherID" ))               { if (tmp = rule_otherID( parserData )) return tmp; }
+    else if (!strcmp( rulename, "rule_assignmentValues"))       { if (tmp = rule_assignmentValues( parserData )) return tmp; }
+    else if (!strcmp( rulename, "rule_otherAssignmentValue" ))  { if (tmp = rule_otherAssignmentValue( parserData )) return tmp; }
+    else if (!strcmp( rulename, "rule_assignmentValue"))        { if (tmp = rule_assignmentValue( parserData )) return tmp; }
     else return ERR_SYNTAX;
 
 }
@@ -87,22 +184,20 @@ bool parser_data_init ( Parser_data *parserData ) {
 
     // parser data parameters
 
-    parserData->inFunc = 0;
-    parserData->inDecl = 0;
     parserData->inLoop = 0;
 
     parserData->lhsId = NULL;
     parserData->rhsId = NULL;
     parserData->currentFunc = NULL;
     parserData->currentVar = NULL;
+    parserData->insideFunc = NULL;
     
     parserData->paramIndex = 0;
     parserData->currentDepth = 0;
-    parserData->whereAmI = 0;
-    parserData->idCounter = 0;
 
     // symTable[0] - global table; all others are local ones
     st_init( &parserData->symTable[0] );
+    q_init( &parserData->queue );
     // built-in functions
     Item_data *tmp;
 
@@ -122,7 +217,7 @@ bool parser_data_init ( Parser_data *parserData ) {
     tmp->ifdef = 1;
 
     tmp = st_add_id( &parserData->symTable[0], "write" );
-    if (res = st_add_param( tmp->inputTypes, KW_STRING )) return false;
+    if (res = st_add_param( tmp->inputTypes, ANY )) return false;
     tmp->ifdec = 1;
     tmp->ifdef = 1;
 
@@ -131,7 +226,7 @@ bool parser_data_init ( Parser_data *parserData ) {
     if (res = st_add_param( tmp->inputTypes, KW_INTEGER )) return false;
     tmp->ifdec = 1;
     tmp->ifdef = 1;
-
+    
     tmp = st_add_id( &parserData->symTable[0], "substr" );
     if (res = st_add_param( tmp->inputTypes, KW_STRING)) return false;
     if (res = st_add_param( tmp->inputTypes, KW_NUMBER )) return false;
@@ -157,9 +252,6 @@ bool parser_data_init ( Parser_data *parserData ) {
 
 }
 
-/**
- * Main function of compiler
- */
 int parse (  ) {
     
     int res = 0;
@@ -181,17 +273,20 @@ int parse (  ) {
     _code_string( codeString );
     // generate start of program
     if (!cg_start(  )) return ERR_INTERNAL;
-    
     // general rule: 
-    // <program> -> <prologue>.<function list>
+    // <program> -> <prologue> <function list>
     // <prologue>
     if (res = rule_prologue( parserData )) return res;
     // <function list>
     if (res = rule_functionList( parserData )) return res;
-    // print out code (move to main.c)
-    cg_output(stdout);
 
+    q_dispose( &parserData->queue );
+    // generate main end
+    cg_end(  );
+    
+    cg_output(stdout);
     ds_free( scannerString );
+
     // generate end of main function
 
     printf( "END: %d \n", res );
@@ -202,11 +297,6 @@ int parse (  ) {
 
 /*........................................ RECURSIVE TOP-DOWN PARSER ........................................ */
 
-/**
- * <prologue> -> require "ifj21"
-    @param parserData -- 
-    @return error code
- */
 int rule_prologue ( Parser_data *parserData ) {
     
     int tmp;
@@ -214,284 +304,365 @@ int rule_prologue ( Parser_data *parserData ) {
     if (tmp = get_next_token( &parserData->token )) return tmp;
     if (strcmp( parserData->token.attribute.string->str, "ifj21" ) != 0) exit( ERR_SYNTAX );
     printf( "(%d %s) ", parserData->token.type, parserData->token.attribute.string->str );
-    // TUTA
-    if (tmp = get_next_token( &parserData->token )) return tmp;
     
+    if (tmp = get_next_token( &parserData->token )) return tmp;
     return 0;
 
 }
 
-/**
-    // <function list> -> <function declaration>.<function list>
-    // <function list> -> <function declaration>
-    // <function list> -> <function definition>.<function list>
-    // <function list> -> <function definition>
-    // <function list> -> ε
-    @param parserData -- 
-    @return error code
- */ 
+/*........................................ FUNCTION HEADERS ........................................ */
+
 int rule_functionList ( Parser_data *parserData ) {
 
     int res = 0;
     printf( "(%d %d) ", parserData->token.type, parserData->token.attribute.keyword );
-    // <function declaration> -> GLOBAL ID : FUNCTION (<param list type 1>) : <param list type 3>
-    if (parserData->token.attribute.keyword == KW_GLOBAL) {                                     // GLOBAL
-
-        if (res = get_next_token_and_check_type( parserData, T_IDE )) return res;               // ID
-        
-        parserData->currentFunc = st_search( parserData->symTable[0].rootItem, parserData->token.attribute.string->str );
-        if (parserData->currentFunc == NULL || parserData->currentFunc->ifdec == 0) {
-            parserData->currentFunc = st_add_id( &parserData->symTable[0], parserData->token.attribute.string->str );
-            if (!&parserData->currentFunc) return ERR_INTERNAL;
-        } else return ERR_SEMANTIC_UNDEF_VAR;
-
-        if (res = get_next_token_and_check_type( parserData, T_COL )) return res;               // :
-        if (res = get_next_token_and_check_keyword( parserData, KW_FUNCTION )) return res;      // FUNCTION
-        if (res = get_next_token_and_check_type( parserData, T_LBR )) return res;               // (
-        
-        parserData->whereAmI = 1;
-        if (res = get_next_token_and_apply_rule( parserData, "rule_paramList" )) return res;    // <param list type 1>
-        
-        printf( "(%d -) ", parserData->token.type );
-        if (parserData->token.type != T_RBR) return ERR_SYNTAX;                                 // )
-        if (res = get_next_token_and_check_type( parserData, T_COL )) return res;               // :
-
-        parserData->whereAmI = 3;
-        if (res = get_next_token_and_apply_rule( parserData, "rule_paramList" )) return res;    // <param list type 3>
-        
-        return rule_functionList( parserData );                                                 // <function list>
-
-    // <function definition> -> FUNCTION ID (<param list type 2>) : <param list type 3> <statement list> END
-    } else if (parserData->token.attribute.keyword == KW_FUNCTION) {                            // FUNCTION
-        
-        if (res = get_next_token_and_check_type( parserData, T_IDE )) return res;               // ID
-        
-        parserData->currentFunc = st_search( parserData->symTable[0].rootItem, parserData->token.attribute.string->str );
-        if (parserData->currentFunc == NULL || parserData->currentFunc->ifdef == 0) {
-            parserData->currentFunc = st_add_id( &parserData->symTable[0], parserData->token.attribute.string->str );
-            if (!&parserData->currentFunc) return ERR_INTERNAL;
-        }
-        else return ERR_SEMANTIC_UNDEF_VAR;
-
-        parserData->currentFunc->ifdef = 1;
-        parserData->currentFunc->ifdec = 1;
-        
-        // generate function header code
-        cg_function_header( parserData->currentFunc->id );
-        
-        if (res = get_next_token_and_check_type( parserData, T_LBR )) return res;               // (
-        
-        parserData->currentDepth++;
-        st_init( &parserData->symTable[parserData->currentDepth] );
-
-        parserData->whereAmI = 2;
-        if (res = get_next_token_and_apply_rule( parserData, "rule_paramList" )) return res;    // <param list type 2>
-        
-        if (parserData->token.type != T_RBR) return ERR_SYNTAX;                                 // )
-
-        if (res = get_next_token( &parserData->token )) return res;
-
-        if (parserData->token.type == T_COL) {
-
-            parserData->whereAmI = 3;
-            if (res = get_next_token_and_apply_rule( parserData, "rule_paramList" )) return res;// <param list type 3>
-
-        }
-        if (res = rule_statementList( parserData )) return res;                                 // <statement list>
-        
-        st_dispose( &parserData->symTable[parserData->currentDepth].rootItem );
-        parserData->currentDepth--;
-        if (parserData->token.type == T_KEY && parserData->token.attribute.keyword == KW_END)   // END
-
-        if (res = get_next_token( &parserData->token )) return res;
-        return rule_functionList( parserData );                                                 // <function list>
-
-    }
-
-    // <function list> -> ε
-    else {
-        
-        if (!cg_end(  )) return ERR_INTERNAL;
+    if      (parserData->token.type == T_EOF) {
 
         return 0;
+
+    } 
+
+    else {
+
+        if      (parserData->token.attribute.keyword == KW_GLOBAL) {
+
+            if (res = rule_functionDeclaration( parserData )) exit( res );
+
+            return rule_functionList( parserData );
+
+        }
+
+        else if (parserData->token.attribute.keyword == KW_FUNCTION) {
+            
+            if (res = rule_functionDefinition( parserData )) exit( res );
+
+            return rule_functionList( parserData );
+
+        }
 
     }
 
 }
 
-/**
- * <param list> -> <param>.<param list>
- * <param list> -> <param>
-    @param parserData -- 
-    @return error code
- */ 
-int rule_paramList ( Parser_data *parserData ) {
+int rule_functionDeclaration ( Parser_data *parserData ) {
+
+    int res = 0;                                                                                            // GLOBAL
+
+    if (res = get_next_token_and_check_type( parserData, T_IDE )) exit( res );                              // ID
+    SEARCH_GLOBAL( parserData->token.attribute.string->str );
+    if (res == 1) exit( ERR_SEMANTIC_UNDEF_VAR ); // attempt of function redeclaration or declaration after definition
+    ADD_GLOBAL( parserData->token.attribute.string->str );
+
+    if (res = get_next_token_and_check_type( parserData, T_COL )) exit ( res );                             // :
+    if (res = get_next_token_and_check_keyword( parserData, KW_FUNCTION )) exit ( res );                    // FUNCTION
+    if (res = get_next_token_and_check_type( parserData, T_LBR )) exit ( res );                             // (
+
+    if (res = get_next_token_and_apply_rule( parserData, "rule_declarationParams" )) exit( res );           // <declaration params>
+    if (parserData->token.type != T_RBR) exit( ERR_SYNTAX );                                                // )
+
+    if (res = get_next_token_and_apply_rule( parserData, "rule_output" )) exit( res );                      // <output>
+    
+    parserData->currentFunc->ifdec = 1;
+
+    return 0;
+
+}
+
+int rule_declarationParams ( Parser_data *parserData ) {
 
     int res = 0;
-    // if there is declared function or variable in the same context lvl with same identifier
-    if (parserData->token.type == T_IDE && st_search( parserData->symTable[0].rootItem, parserData->token.attribute.string->str ) != NULL
-    && st_search( parserData->symTable[parserData->currentDepth].rootItem, parserData->token.attribute.string->str ) != NULL)
-        return ERR_SEMANTIC_UNDEF_VAR;
 
-    if (parserData->token.type == T_IDE || parserData->token.type == T_KEY) {
-        // <param> -> TYPE, (in function header: case 1: input types; case 2: output types)
-        if (parserData->whereAmI == 1 || parserData->whereAmI == 3) { 
+    if (parserData->token.type == T_RBR) return res;
 
-            if (parserData->token.type == T_IDE) return ERR_SYNTAX;                            // TYPE
+    if (res = st_add_param( parserData->currentFunc->inputTypes, parserData->token.attribute.keyword )) exit( res );
 
-            if      (parserData->whereAmI == 1) {
-                if (res = st_add_param( parserData->currentFunc->inputTypes, parserData->token.attribute.keyword )) return res;
-                
-            }
-            else if (parserData->whereAmI == 3) {
-                if (res = st_add_param( parserData->currentFunc->outputTypes, parserData->token.attribute.keyword )) return res;
-                cg_function_output_type( parserData->token.attribute.keyword, parserData->currentFunc->outputTypes->length - 1 );
-            }
-
-            if (res = get_next_token_and_check_type( parserData, T_COM )) return res;          // ,    
-
-        }
-        // <param> -> ID : TYPE, (in function defenition)
-        else if (parserData->whereAmI == 2) {
-            
-            if (parserData->token.type == T_KEY) return ERR_SYNTAX;                            // ID
-
-            parserData->currentVar = st_add_id( &parserData->symTable[parserData->currentDepth], parserData->token.attribute.string->str );
-
-            if (res = get_next_token_and_check_type( parserData, T_COL )) return res;          // :
-            if (res = get_next_token( &parserData->token )) return res;                        // TYPE
-
-            if (res = st_add_type( &parserData->token, parserData->currentVar )) return res;
-            cg_function_input_type( parserData->currentFunc->id, parserData->token.attribute.keyword, parserData->currentFunc->inputTypes->length );
-
-            if (res = get_next_token_and_check_type( parserData, T_COM )) return res;          // ,
-
-        }
-
-        if (parserData->token.type != T_RBR) {
-            if (res = get_next_token( &parserData->token )) return res;
-        }
-        return rule_paramList( parserData ); 
-
-    }
-
-    else {
-
-        return 0;
-
-    }
+    return rule_otherDeclarationParam( parserData );
 
 }
 
-/**
- * <statement list> -> <statement>.<statement list>
- * <statement list> -> <statement>
- * <statement list> -> ε
- * <statement> -> ... (see cases)
- * <statement> -> ε
-    @param parserData -- 
-    @return error code
- */
+int rule_otherDeclarationParam ( Parser_data *parserData ) {
+
+    int res = 0;
+    
+    if (res = get_next_token( &parserData->token )) exit( res );
+
+    if (parserData->token.type != T_COM) return res;
+
+    if (res = get_next_token( &parserData->token )) exit( res );
+    if (res = st_add_param( parserData->currentFunc->inputTypes, parserData->token.attribute.keyword )) exit( res );
+
+    return rule_otherDeclarationParam( parserData );
+
+}
+
+int rule_functionDefinition ( Parser_data *parserData ) {
+
+    int res = 0;                                                                                            // FUNCTION
+
+    if (res = get_next_token_and_check_type( parserData, T_IDE )) exit( res );                              // ID   
+    parserData->currentFunc = st_search( parserData->symTable[0].rootItem, parserData->token.attribute.string->str );
+    if (parserData->currentFunc == NULL) {
+        ADD_GLOBAL( parserData->token.attribute.string->str );
+        parserData->currentFunc->ifdef = 1;
+    }
+    else { // attempt of function redefinition?
+        if (parserData->currentFunc->ifdef == 1) exit ( ERR_SEMANTIC_UNDEF_VAR ); 
+        else parserData->currentFunc->ifdef = 1;
+    }
+    parserData->insideFunc = parserData->currentFunc;
+
+    cg_function_header( parserData->currentFunc->id );
+
+    if (res = get_next_token_and_check_type( parserData, T_LBR )) exit( res );                              // (
+    
+    parserData->currentDepth++;
+    st_init( &parserData->symTable[parserData->currentDepth] );
+    
+    if (res = get_next_token_and_apply_rule( parserData, "rule_definitionParams" )) exit( res );            // <definition params>
+    
+    if (parserData->token.type != T_RBR) exit( ERR_SYNTAX );                                                // )
+    
+    if (res = get_next_token_and_apply_rule( parserData, "rule_output" )) exit( res );                      // <output>
+
+    if (res = rule_statementList( parserData )) exit( res );                                                // <statement list>
+
+    st_dispose( &parserData->symTable[parserData->currentDepth].rootItem );
+    parserData->currentDepth--;
+    
+    if (parserData->token.attribute.keyword != KW_END) exit( ERR_SYNTAX );                                  // END
+    
+    if (res = get_next_token( &parserData->token )) exit( res );
+    return 0;
+    
+}
+
+int rule_definitionParams ( Parser_data *parserData ) {
+
+    int res = 0;
+
+    if (parserData->token.type == T_RBR) {
+        if (parserData->currentFunc->inputTypes->length == 0) return res;
+        else exit( ERR_SEMANTIC_FUNC_PAR );
+    }
+    parserData->paramIndex = 0;
+
+    if (res = rule_definitionParam( parserData )) exit( res );
+
+    return rule_otherDefinitionParam( parserData );
+
+}
+
+int rule_otherDefinitionParam ( Parser_data *parserData ) {
+
+    int res = 0;
+
+    if (res = get_next_token( &parserData->token )) exit( res );                                            // ,
+    printf("(%d -) ", parserData->token.type );
+    
+    if (parserData->token.type != T_COM) {
+        if (parserData->currentFunc->ifdec) {
+            if (parserData->currentFunc->inputTypes->length == parserData->paramIndex) return res;
+            else exit( ERR_SEMANTIC_FUNC_PAR );
+        } else return res;
+    }
+
+    if (res = get_next_token_and_apply_rule( parserData, "rule_definitionParam" )) return res;              // <definition param>
+    
+    return rule_otherDefinitionParam( parserData );                                                         // <other definition param>
+
+}
+
+int rule_definitionParam ( Parser_data *parserData ) {
+
+    int res = 0;
+    
+    ADD_LOCAL( parserData->token.attribute.string->str );                                                   // ID
+
+    if (res = get_next_token_and_check_type( parserData, T_COL )) exit( res );                              // :
+    if (res = get_next_token( &parserData->token )) exit( res );                                            // TYPE
+    printf("(%d %d) ", parserData->token.type, parserData->token.attribute.keyword );
+    // to control if types are the same both in declared and in defined versions
+    if (parserData->currentFunc->ifdec == 1) {
+        
+        if (parserData->currentFunc->outputTypes->length == parserData->paramIndex) exit( ERR_SEMANTIC_FUNC_PAR );
+        /** TODO: convert types if needed */
+        if (parserData->currentFunc->inputTypes->str[parserData->paramIndex] != convert_data_type_to_char( parserData->token.attribute.keyword )) {
+            exit( ERR_SEMANTIC_FUNC_PAR );
+        }
+        
+    } 
+    // to add types to function
+    else {
+
+        if (res = st_add_param( parserData->currentFunc->inputTypes, parserData->token.attribute.keyword )) exit( res );
+
+    }
+    
+    // assign type to variable
+    if (res = st_add_type( &parserData->token, parserData->currentVar )) exit( res );
+
+    if (parserData->currentFunc->ifdef) cg_function_param( parserData );
+
+    parserData->paramIndex++;
+
+    return 0;
+
+}
+
+int rule_output ( Parser_data *parserData ) {
+
+    int res = 0;
+
+    if (parserData->token.type != T_COL) {
+        if (parserData->currentFunc->ifdec) {
+            if (parserData->currentFunc->outputTypes->length == 0) return res;
+            else exit( ERR_SEMANTIC_FUNC_PAR );
+        } else return res;
+    }
+
+    parserData->paramIndex = 0;
+    if (res = get_next_token( &parserData->token )) exit( res );                                            // TYPE
+    printf("(%d %d) ", parserData->token.type, parserData->token.attribute.keyword );
+    if (parserData->currentFunc->ifdec) {
+        
+        if (parserData->currentFunc->outputTypes->str[parserData->paramIndex] != convert_data_type_to_char( parserData->token.attribute.keyword )) exit( ERR_SEMANTIC_FUNC_PAR );
+
+    }
+    else {
+
+        if (res = st_add_param( parserData->currentFunc->outputTypes, parserData->token.attribute.keyword)) exit( res );
+
+    }
+    
+    cg_function_retval( parserData->token.attribute.keyword, parserData->paramIndex );
+    parserData->paramIndex++;
+
+    if (res = get_next_token( &parserData->token )) exit( res );
+    printf("(%d -) ", parserData->token.type );
+    return rule_otherOutputType( parserData );
+
+}
+
+int rule_otherOutputType ( Parser_data *parserData ) {
+
+    int res = 0;
+
+    if (parserData->token.type != T_COM) {
+        if (parserData->currentFunc->ifdec) {
+            if (parserData->paramIndex == parserData->currentFunc->outputTypes->length) return res;
+            else exit( ERR_SEMANTIC_FUNC_PAR );
+        } else return res;
+    }
+
+    if (res = get_next_token( &parserData->token )) exit( res );                                            // TYPE
+    printf("(%d %d) ", parserData->token.type, parserData->token.attribute.keyword );
+    if (parserData->currentFunc->ifdec) {
+        
+        if (parserData->currentFunc->inputTypes->str[parserData->paramIndex] != convert_data_type_to_char( parserData->token.attribute.keyword )) exit( ERR_SEMANTIC_FUNC_PAR );
+        parserData->paramIndex++;
+
+    }
+    else {
+
+        if (res = st_add_param( parserData->currentFunc->outputTypes, parserData->token.attribute.keyword)) exit( res );
+
+    }
+
+    cg_function_retval( parserData->token.attribute.keyword, parserData->paramIndex );
+    parserData->paramIndex++;
+
+    if (res = get_next_token( &parserData->token )) exit( res );
+    return rule_otherOutputType( parserData );
+    
+}
+
+/*.......................................... STATEMENT LIST .......................................... */
+
 int rule_statementList ( Parser_data *parserData ) {
     
     int res = 0;
-    // $1
-    // <statement> -> <ID list> = <expression list>
-    // <statement> -> <ID list> = ID (<param list>)
-    // <statement> -> <ID list> <value list>
-    // <statement> -> function_id(<params>)
-    if (parserData->token.type == T_IDE) {
 
-        // currentFunc <- search var id
+    // $1
+    // <statement> -> <ID list> <assignment values>
+    // <statement> -> ID (<function call param list>)
+    if (parserData->token.type == T_IDE) {
+        
+        // currentFunc <- search var id 
         SEARCH_GLOBAL( parserData->token.attribute.string->str );
 
-        // if not function : <statement> -> <ID list> <value list> 
-        if (parserData->currentFunc == NULL) {
-            // currentVar <- search var id
-            SEARCH_ALL_LOCAL( parserData->token.attribute.string->str );
-            if (parserData->currentVar == NULL) return ERR_SEMANTIC_UNDEF_VAR;
+        // <statement> -> <ID list> <smth>
+        if (res == 0) {
 
-            if (res = get_next_token_and_apply_rule( parserData, "rule_IDList" )) return res;
+            if (res = rule_IDList( parserData )) exit( res );                                               // <ID list>
+            if (parserData->token.type != T_ASS) {
+                if (res = get_next_token( &parserData->token )) exit( res );
+            }
+            if (res = rule_assignmentValues( parserData )) exit( res );                                     // <assignment values>
+            
+            return rule_statementList( parserData );
 
         } 
-        // <statement> -> function_ID (<param list>) 
-        else if (parserData->currentFunc != NULL) {
-
-            if (res = get_next_token_and_check_type( parserData, T_LBR )) return res;               // (
-
-            if (parserData->lhsId->inputTypes->length > 0) {
-
-                parserData->paramIndex = 0;
-                while (parserData->lhsId->inputTypes->length >= parserData->paramIndex) {
-
-                    (parserData->paramIndex)++;
-                    int currentType = parserData->lhsId->inputTypes->str[parserData->paramIndex] - '0';
-                    if (res = get_next_token( &parserData->token )) return res;
-                    if (currentType != parserData->token.type) {
-                        if (currentType == T_NUM && parserData->token.type != T_INT) {
-                            return ERR_SEMANTIC_FUNC_PAR; 
-                        }
-                        else if (currentType == T_NUM && parserData->token.type == T_INT) {
-                           // gc_int2numconvertion ()
-                        }
-                    }
-                    
-
-
-                }
-            }
+        // <statement> -> function_ID (<function call param list>) 
+        else if (res == 1) {
+            
+            res = 0;
+            
+            if (!cg_frame_to_pass_param(  )) exit( ERR_INTERNAL );
+            if (res = get_next_token_and_check_type( parserData, T_LBR )) exit( res );                      // (
+            if (res = get_next_token_and_apply_rule( parserData, "rule_functionCallParams" )) exit( res );  // <function call param list>
+            if (parserData->token.type != T_RBR) exit( ERR_SYNTAX );                                        // )
+            if (!cg_call( parserData->currentFunc->id )) exit( ERR_INTERNAL );      
 
         }
 
         if (res = get_next_token( &parserData->token )) return res;
-        return rule_statementList( parserData );                                                        // <statement list>
+        return rule_statementList( parserData );
 
     }
 
     // $2
-    // <statement> -> LOCAL ID : TYPE <optional defenition>
-    else if (parserData->token.attribute.keyword == KW_LOCAL) {                                         // LOCAL
+    // <statement> -> LOCAL ID : TYPE <optional definition>
+    else if (parserData->token.attribute.keyword == KW_LOCAL) {                                             // LOCAL
         
         printf( "(%d %d) ", parserData->token.type, parserData->token.attribute.keyword );
-        if (res = get_next_token_and_check_type( parserData, T_IDE )) return res;                       // ID
+        if (res = get_next_token_and_check_type( parserData, T_IDE )) return res;                           // ID
 
-        SEARCH_GLOBAL( parserData->token.attribute.string->str );
-        if (res == 0) exit( ERR_SEMANTIC_UNDEF_VAR );
-        SEARCH_LOCAL( parserData->token.attribute.string->str );
-        if (res == 0) exit( ERR_SEMANTIC_UNDEF_VAR );
+        SEARCH_GLOBAL( parserData->token.attribute.string->str ); // variable with function name -> error
+        if (res == 1) exit( ERR_SEMANTIC_UNDEF_VAR );
+        SEARCH_LOCAL( parserData->token.attribute.string->str ); // attempt of variable redefinition on the same lvl
+        if (res == 1) exit( ERR_SEMANTIC_UNDEF_VAR );
 
         ADD_LOCAL( parserData->token.attribute.string->str );
         parserData->lhsId = parserData->currentVar;
         
-        if (res = get_next_token_and_check_type( parserData, T_COL )) return res;                       // :
-        if (res = get_next_token( &parserData->token )) return res;                                     // TYPE
+        if (res = get_next_token_and_check_type( parserData, T_COL )) return res;                           // :
+        if (res = get_next_token( &parserData->token )) return res;                                         // TYPE
         printf( "(%d %d) ", parserData->token.type, parserData->token.attribute.keyword );
         if (res = st_add_type( &parserData->token, parserData->lhsId )) return res;
 
-        cg_declare_var( parserData->lhsId->id );
-        cg_define_var( parserData->lhsId );
+        cg_declare_var( parserData );
+        cg_define_var( parserData );
         
-        if (res = get_next_token_and_apply_rule( parserData, "rule_optionalDefenition" )) return res;   // <optional defenition>
-        // will give you next token
+        if (res = get_next_token_and_apply_rule( parserData, "rule_optionalDefinition" )) return res;       // <optional definition>
         
-        return rule_statementList( parserData );                                                        // <statement list>
+        return rule_statementList( parserData );                                                            // <statement list>
 
     }
 
     // $3
     // <statement> -> IF <expression> THEN <statement list> ELSE <statement list> END . <statement list>
-    else if (parserData->token.attribute.keyword == KW_IF) {                                        // IF
+    else if (parserData->token.attribute.keyword == KW_IF) {                                                // IF
         
         parserData->currentDepth++;
         st_init( &parserData->symTable[parserData->currentDepth] );
         parserData->inLoop = true;
 
-        if (res = get_next_token_and_apply_rule( parserData, "rule_Expression" )) return res;       // <expression>
-        if (res = get_next_token_and_check_keyword( parserData, KW_THEN )) return res;              // THEN
-        if (res = get_next_token_and_apply_rule( parserData, "rule_statementList" )) return res;    // <statement list>
-        if (res = get_next_token_and_check_keyword( parserData, KW_ELSE )) return res;              // ELSE
-        if (res = get_next_token_and_apply_rule( parserData, "rule_statementList" )) return res;    // <statement list>
-        if (res = get_next_token_and_check_keyword( parserData, KW_END )) return res;               // END
+        if (res = get_next_token_and_apply_rule( parserData, "rule_expression" )) return res;               // <expression>
+        if (res = get_next_token_and_check_keyword( parserData, KW_THEN )) return res;                      // THEN
+        if (res = get_next_token_and_apply_rule( parserData, "rule_statementList" )) return res;            // <statement list>
+        if (res = get_next_token_and_check_keyword( parserData, KW_ELSE )) return res;                      // ELSE
+        if (res = get_next_token_and_apply_rule( parserData, "rule_statementList" )) return res;            // <statement list>
+        if (res = get_next_token_and_check_keyword( parserData, KW_END )) return res;                       // END
 
         parserData->inLoop = false;
         st_dispose( &parserData->symTable[parserData->currentDepth].rootItem );
@@ -499,29 +670,29 @@ int rule_statementList ( Parser_data *parserData ) {
         
 
         if (res = get_next_token( &parserData->token )) return res;
-        return rule_statementList( parserData );                                                    // <statement list>
+        return rule_statementList( parserData );                                                            // <statement list>
 
     }
 
     // $4
     // <statement> -> WhILE <expression> DO <statement list> END . <statement list>
-    else if (parserData->token.attribute.keyword == KW_WHILE) {                                     // WHILE
+    else if (parserData->token.attribute.keyword == KW_WHILE) {                                             // WHILE
         
         parserData->currentDepth++;
         st_init( &parserData->symTable[parserData->currentDepth] );
         parserData->inLoop = true;
         
-        if (res = get_next_token_and_apply_rule( parserData, "rule_Expression" )) return res;       // <expression>
-        if (res = get_next_token_and_check_keyword( parserData, KW_DO )) return res;                // DO
-        if (res = get_next_token_and_apply_rule( parserData, "rule_statementList" )) return res;    // <statement list>
-        if (res = get_next_token_and_check_keyword( parserData, KW_END )) return res;               // END
+        if (res = get_next_token_and_apply_rule( parserData, "rule_expression" )) return res;               // <expression>
+        if (res = get_next_token_and_check_keyword( parserData, KW_DO )) return res;                        // DO
+        if (res = get_next_token_and_apply_rule( parserData, "rule_statementList" )) return res;            // <statement list>
+        if (res = get_next_token_and_check_keyword( parserData, KW_END )) return res;                       // END
 
         parserData->inLoop = false;
         st_dispose( &parserData->symTable[parserData->currentDepth].rootItem );
         parserData->currentDepth--;
 
         if (res = get_next_token( &parserData->token )) return res;
-        return rule_statementList( parserData );                                                    // <statement list>
+        return rule_statementList( parserData );                                                            // <statement list>
 
     }
 
@@ -529,104 +700,209 @@ int rule_statementList ( Parser_data *parserData ) {
     // <statement> -> RETURN <expression list>
     else if (parserData->token.attribute.keyword == KW_RETURN) {
 
-        if (res = get_next_token_and_apply_rule( parserData, "rule_expressionList" )) return res;   // <expression>
-
-        return rule_statementList( parserData );                                                    // <statement list>
+        return rule_statementList( parserData );                                                            // <statement list>
 
     }
 
     // $6
     // <statement> -> WRITE (<write argument list>)
-    else if (parserData->token.attribute.keyword == KW_WRITE) {                                     // WRITE
+    else if (parserData->token.attribute.keyword == KW_WRITE) {                                             // WRITE
 
+        printf( "(%d %d) ", parserData->token.type, parserData->token.attribute.keyword );
         SEARCH_GLOBAL( "write" );
         
-        if (res = get_next_token_and_check_type( parserData, T_LBR )) return res;                   // (
-        
-        if (res = get_next_token_and_apply_rule( parserData, "rule_writeArgumentList" )) return res;
+        if (res = get_next_token_and_check_type( parserData, T_LBR )) exit( res );                          // (
 
-        if (res = get_next_token_and_check_type( parserData, T_RBR )) return res;                   // )
+        if (res = get_next_token_and_apply_rule( parserData, "rule_writeArgumentList" )) return res;        // <write argument list>
+        
+        if (parserData->token.type != T_RBR) exit( ERR_SYNTAX );                                            // ) 
+        
+        if (res = get_next_token( &parserData->token )) exit( res );
         return rule_statementList( parserData );
         
-
     }
 
-    
+
     // $
     // <statement> -> ε
     else return 0;
 
 }
 
-/**
- * <ID list> -> ID <other_IDs>
- * <ID list> -> , ID <other IDs>
- */ 
+/*.......................................... IDENTIFIER LIST ..........................................*/
+
 int rule_IDList ( Parser_data *parserData ) {
 
+    int res = 0;                                                                                            // ID
+    
+    SEARCH_ALL_LOCAL( parserData->token.attribute.string->str );
+    if (res == 0) exit( ERR_SEMANTIC_UNDEF_VAR );
+    res = 0;
+    q_push( &parserData->queue, parserData->currentVar );
+
+    if (res = get_next_token( &parserData->token )) exit( res );
+
+    return rule_otherID( parserData );                                                                      // <other ID>
+
+}
+
+int rule_otherID ( Parser_data *parserData ) {
+
     int res = 0;
 
-    if (res = get_next_token_and_apply_rule( parserData, "rule_OtherIDs")) return res;
-
-
-
-    return res;
+    if (parserData->token.type != T_COM) return res;                                                        // ,
+    if (res = get_next_token_and_check_type( parserData, T_IDE )) exit( res );                              // ID
+    SEARCH_ALL_LOCAL( parserData->token.attribute.string->str );
+    if (res == 0) exit( ERR_SEMANTIC_UNDEF_VAR );
+    res = 0;
+    q_push( &parserData->queue, parserData->currentVar );
+   
+    return rule_otherID( parserData );                                                                      // <other ID>
 
 }
 
-/**
- * 
- * 
- */
-int rule_OtherIDs ( Parser_data *parserData ) {
+/*.......................................... ASSIGNMENT VALUES ..........................................*/
+
+int rule_assignmentValues( Parser_data *parserData ) {
 
     int res = 0;
-
-
-
-    return res;
+    if (parserData->token.type != T_ASS) exit( ERR_SYNTAX );                                                // =
+    if (res = get_next_token_and_apply_rule( parserData, "rule_assignmentValue")) exit( res );              // <assignment value>
+    return rule_otherAssignmentValue( parserData );                                                         // <other assignment value>
 
 }
-/**
- * <optional defenition> -> = <value>
- * <optional defenition> -> e
- */
-int rule_optionalDefenition ( Parser_data *parserData ) {
+
+int rule_otherAssignmentValue( Parser_data *parserData ) {
 
     int res = 0;
-    // <optional defenition> -> e
+
+    if (parserData->token.type != T_COM) return res;                                                        // ,
+
+    if (res = get_next_token_and_apply_rule( parserData, "rule_assignmentValue")) exit( res );              // <assignment value>
+
+    return rule_otherAssignmentValue( parserData );
+
+}
+
+int rule_assignmentValue ( Parser_data *parserData ) {
+
+    int res = 0;
+    
+    if (parserData->token.type == T_IDE) SEARCH_GLOBAL( parserData->token.attribute.string->str );
+
+    if (res == 0) {
+
+        printf("%s", parserData->queue.top->data->id);
+        parserData->lhsId = q_pop( &parserData->queue );
+        printf("%s", parserData->lhsId->id);
+        if (res = rule_expression( parserData )) exit( res );
+
+    }
+    
+    else { // parserData->currentFunc <- called function 
+
+        res = 0;
+
+        if (!cg_frame_to_pass_param(  )) exit( ERR_INTERNAL );
+        if (res = get_next_token_and_check_type( parserData, T_LBR )) exit( res );                          // (
+        if (res = get_next_token_and_apply_rule( parserData, "rule_functionCallParams" )) exit( res );      // <function call params>
+        if (parserData->token.type != T_RBR) exit( ERR_SYNTAX );                                            // )
+        if (!cg_call( parserData->currentFunc->id )) exit( ERR_INTERNAL );                                  
+        for (int i = 0; i < parserData->currentFunc->outputTypes->length; i++) {                            // value return
+
+            parserData->currentVar = q_pop( &parserData->queue );
+            if (parserData->currentVar->type != get_param_or_retval_type( parserData->currentFunc, 1, i )) exit( ERR_SEMANTIC_FUNC_PAR );
+
+            if (!cg_get_retval( parserData->currentVar, i )) exit( ERR_INTERNAL );
+
+        }
+
+    }
+
+    return 0;
+
+}
+
+/*.......................................... FUNCTION CALL ..........................................*/
+
+int rule_functionCallParams( Parser_data *parserData ) {
+
+    int res = 0;
+
+    parserData->paramIndex = 0;
+    if (res = rule_callParam( parserData )) exit( res );                                                    // <call param>  
+    if (res = get_next_token( &parserData->token )) exit( res );
+
+    return rule_otherCallParam( parserData );                                                               // <other call param>
+    
+}
+
+int rule_otherCallParam ( Parser_data *parserData ) {
+
+    int res = 0;
+
+    if (parserData->token.type != T_COM) return res;                                                        // ,
+
+    if (res = get_next_token_and_apply_rule( parserData, "rule_callParam" )) exit( res );                   // <call param>
+    if (res = get_next_token( &parserData->token )) exit( res );
+
+    return rule_otherCallParam( parserData );                                                               // <other call param>
+
+}
+
+int rule_callParam ( Parser_data *parserData ) {
+
+    int res = 0;
+
+    if (parserData->currentFunc->inputTypes->length == parserData->paramIndex) exit( ERR_SEMANTIC_FUNC_PAR );
+
+    if (parserData->token.type == T_IDE) {
+        // parserData->currentVar <- search
+        SEARCH_ALL_LOCAL( parserData->token.attribute.string->str );
+        if (res == 0) exit( ERR_SEMANTIC_UNDEF_VAR );
+        res = 0;
+        
+        if (parserData->currentVar->type != get_param_or_retval_type( parserData->currentFunc, 0, parserData->paramIndex )) exit( ERR_SEMANTIC_FUNC_PAR );
+
+        if (!cg_pass_param_light( parserData )) exit( ERR_INTERNAL );
+
+    }
+    
+    else if (IS_VAL( parserData->token )) {
+
+        if (!cg_pass_param_light( parserData )) exit( ERR_INTERNAL );
+
+    }
+
+    else exit( ERR_SYNTAX );
+
+    parserData->paramIndex++;
+
+    return 0;
+
+}
+
+int rule_optionalDefinition ( Parser_data *parserData ) {
+
+    int res = 0;
+    // <optional definition> -> e
     if (parserData->token.type != T_ASS) {
 
         return res;
 
     }
-    // <optional defenition> -> = <value>
+    // <optional definition> -> = <value>
     else {
 
-        if (res = get_next_token_and_apply_rule( parserData, "rule_Value" )) return res;
-        
+        if (res = get_next_token_and_apply_rule( parserData, "rule_value" )) return res;
         
     }
 
     return res;
 
 }
-/**
- * 
- */
-int rule_expressionList ( Parser_data *parserData ) {
 
-    int res = 0;
-
-    if (res = get_next_token( &parserData->token )) return res;
-    return res;
-
-}
-/**
- * <value> -> function_ID( <argument list> )
- * <value> -> <expression>
- */
-int rule_Value ( Parser_data *parserData ) {
+int rule_value ( Parser_data *parserData ) {
 
     int res = 0;
     
@@ -634,14 +910,16 @@ int rule_Value ( Parser_data *parserData ) {
         
         // <value> -> ID
         SEARCH_ALL_LOCAL( parserData->token.attribute.string->str );
-        if (res != 1) {      // not func
+        if (res == 1) {      // not func
 
-            if (res = rule_Expression( parserData )) return res;
+            res = 0;
+
+            if (res = rule_expression( parserData )) return res;
 
             return res;
 
         } else if (IS_BUILTIN( parserData->token )) {
-
+            
             switch (parserData->token.attribute.keyword) {
 
                 case (KW_READI):
@@ -703,7 +981,7 @@ int rule_Value ( Parser_data *parserData ) {
         } // if built-in
 
         else {
-
+            
             SEARCH_GLOBAL_RHS( parserData->token.attribute.string->str );
 
         }
@@ -720,7 +998,6 @@ int rule_Value ( Parser_data *parserData ) {
                 if (res = get_next_token_and_check_type( parserData, T_LBR )) return res;
 
                 parserData->paramIndex = 0;
-                if (res = get_next_token_and_apply_rule( parserData, "rule_ArgumentList")) return res;
 
             } else {
 
@@ -732,7 +1009,7 @@ int rule_Value ( Parser_data *parserData ) {
 
     } else {
            
-        if (res = rule_Expression( parserData )) return res;
+        if (res = rule_expression( parserData )) exit( res );
         
         return res;    
 
@@ -740,62 +1017,38 @@ int rule_Value ( Parser_data *parserData ) {
     
 }
 
-/**
- * <argument list> -> 
- * 
- * 
- */
-int rule_argumentList ( Parser_data *parserData ) {
+/*.......................................... WRITE ..........................................*/
 
-    int res = 0;
-
-    parserData->paramIndex = 0;
-
-    if (parserData->token.type == T_INT
-    || parserData->token.type == T_NUM
-    || parserData->token.type == T_STR
-    || parserData->token.type == T_IDE) {
-
-    }
-
-
-
-}
-
-/**
- * <write argument list>  -> <expression> <other write argument>
- * <other write argument> -> , <expression> <other write argument>
- * <other write argument> -> e
- */
 int rule_writeArgumentList ( Parser_data *parserData ) {
 
     int res = 0;
 
+    if (parserData->token.type == T_RBR) return res;
+
     parserData->paramIndex = 0;
 
-    if (parserData->token.type == T_STR
-    ||  parserData->token.type == T_IDE) {
+    if (res = rule_expression( parserData )) return res;                                                    // <expression>
+    
+    if (!cg_frame_to_pass_param()) exit( ERR_INTERNAL );
+    if (!cg_pass_param( parserData )) exit( ERR_INTERNAL );
+    if (!cg_call( "write" )) exit( ERR_INTERNAL );
 
-        if (res = rule_Expression( parserData )) return res;
-        
-        if (res = get_next_token_and_apply_rule( parserData, "rule_otherWriteArgument" )) return res;
-
-    }
-
-    return 0;
+    return rule_otherWriteArgument( parserData );                                                           // <other write argument>
 
 }
 
 int rule_otherWriteArgument( Parser_data *parserData ) {
 
     int res = 0;
-
-    if (parserData->token.type != T_COM) return res;
     
+    if (parserData->token.type != T_COM) return res;
 
-    if (res = get_next_token_and_apply_rule( parserData, "rule_Expression" )) return res;
+    if (res = get_next_token_and_apply_rule( parserData, "rule_expression" )) return res;                   // <expression>
 
-    cg_call( "write" );
-    return rule_otherWriteArgument( parserData );
+    if (!cg_frame_to_pass_param()) exit( ERR_INTERNAL );
+    if (!cg_pass_param( parserData )) exit( ERR_INTERNAL );
+    if (!cg_call( "write" )) exit( ERR_INTERNAL );
+
+    return rule_otherWriteArgument( parserData );                                                           // <other write argument>        
 
 }

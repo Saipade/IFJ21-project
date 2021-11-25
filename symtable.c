@@ -19,11 +19,6 @@ void st_init ( Sym_table *symTable ) {
 
 }
 
-/**
- * Adds identifier to the table
- * @param symTable symbol table that id will be added to 
- * @param key identifier of function/variable
- */ 
 Item_data *st_add_id ( Sym_table *symTable, char *key ) {
 
     if (!symTable || !key) return NULL;
@@ -69,9 +64,9 @@ Item_data *st_add_id ( Sym_table *symTable, char *key ) {
 
 }
 
-void st_insert ( Sym_table_itemPtr *rootItem, Sym_table_itemPtr newItem ) {
+int st_insert ( Sym_table_itemPtr *rootItem, Sym_table_itemPtr newItem ) {
 
-    if (newItem == NULL) return;
+    if (newItem == NULL) return ERR_INTERNAL;
 
     if (rootItem == NULL || (*rootItem) == NULL) {
 
@@ -79,13 +74,15 @@ void st_insert ( Sym_table_itemPtr *rootItem, Sym_table_itemPtr newItem ) {
         
     }
 
-    if (strcmp( newItem->key, (*rootItem)->key ) == 0) return;
+    else if (!strcmp( newItem->key, (*rootItem)->key )) exit( ERR_SEMANTIC_UNDEF_VAR );
     
-    if (strcmp( newItem->key, (*rootItem)->key ) > 0) {
-
+    else if (strcmp( newItem->key, (*rootItem)->key ) > 0) {
+        
         st_insert( &((*rootItem)->rightItem), newItem );
 
-    } else if (strcmp( newItem->key, (*rootItem)->key ) < 0) {
+    } 
+    
+    else if (strcmp( newItem->key, (*rootItem)->key ) < 0) {
 
         st_insert( &((*rootItem)->leftItem), newItem );
 
@@ -93,7 +90,7 @@ void st_insert ( Sym_table_itemPtr *rootItem, Sym_table_itemPtr newItem ) {
 
 }
 
-int st_add_param ( Dynamic_string *types, int dataType ) {
+int st_add_param ( Dynamic_string *types, Keyword dataType ) {
 
     if (!types) return ERR_INTERNAL;
     
@@ -101,19 +98,19 @@ int st_add_param ( Dynamic_string *types, int dataType ) {
 
         case (KW_INTEGER):
 
-            if (!ds_add_char( types, 'i' )) return ERR_INTERNAL;
+            if (!ds_add_char( types, 'i' )) exit(ERR_INTERNAL);
 
             break;
         
         case (KW_NUMBER):
 
-            if (!ds_add_char( types, 'n' )) return ERR_INTERNAL;
+            if (!ds_add_char( types, 'n' )) exit(ERR_INTERNAL);
 
         break;
 
         case (KW_STRING):
 
-            if (!ds_add_char( types, 's' )) return ERR_INTERNAL;
+            if (!ds_add_char( types, 's' )) exit(ERR_INTERNAL);
 
         break;
 
@@ -122,6 +119,12 @@ int st_add_param ( Dynamic_string *types, int dataType ) {
             if (!ds_add_char( types, 'b' )) return ERR_INTERNAL;
 
         break;     */
+
+        case (ANY):
+
+            if (!ds_add_char( types, 'a' )) exit(ERR_INTERNAL);
+
+        break;
 
         default:
 

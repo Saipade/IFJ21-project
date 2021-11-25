@@ -259,18 +259,16 @@ bool cg_function_header ( char *functionId );
 
 /**
  * @brief Generates code for function input variables
- * @param inputId identifier of given input
- * @param dataType data type of given input
- * @param index index of given input
+ * @param parserData contains required information
  */
-bool cg_function_input_type ( char *inputId, Data_type dataType, int index );
+bool cg_function_param ( Parser_data *parserData );
 
 /**
  * @brief Generates code for function output
  * @param dataType data type of given parameter
  * @param index index of given parameter
  */
-bool cg_function_output_type ( Data_type dataType, int index );
+bool cg_function_retval ( Data_type dataType, int index );
 
 /**
  * @brief Generates code for function return (LABEL, RET)
@@ -296,35 +294,50 @@ bool cg_call ( char *functionId );
 bool cg_frame_to_pass_param (  );
 
 /**
- * @brief Generates code to pass params to function
- * @param token given token 
- * @param index index of param to be passed
+ * @brief Generates code to pass params to function (works for expr) used only for write func
+ * @param parserData contains required information
+ * @return error
  */
-bool cg_pass_param ( Token *token, int index );
+bool cg_pass_param ( Parser_data *parserData );
+
+/**
+ * @brief light version of cg_pass_param (works only for terms)
+ * @param parserData contains required information
+ * @return error
+ */
+bool cg_pass_param_light ( Parser_data *parserData );
+
+/**
+ * @brief Assigns value after function call
+ * @param variable contains variable information
+ * @param index current return value index
+ * @return error
+ */
+bool cg_get_retval ( Item_data *variable, int index );
 
 /**
  * @brief Generates value 
  * @param token contains required information
  */
-bool cg_term ( Token *token );
+bool cg_term ( Token *token, int index );
 
 /**
  * @brief Generates code for variable declaration
- * @param variableId variable identifier
+ * @param parserData contains required information
  */
-bool cg_declare_var ( char *variableId );
+bool cg_declare_var ( Parser_data *parserData );
 
 /**
  * @brief Generates code for variable defenition
- * @param item contains required data 
+ * @param parserData contains required information
  */
-bool cg_define_var ( Item_data *item );
+bool cg_define_var ( Parser_data *parserData );
 
 /**
  * @brief Generates push
  * @param token 
  */
-bool cg_push ( Token *token );
+bool cg_push ( Token *token, int index );
 
 /**
  * @brief Auxiliary function. Generates type of variable
@@ -368,15 +381,25 @@ bool cg_convert_both_int2num (  );
 bool cg_if_header ( int index, int depth );
 
 /**
- * @brief Generates code for stack pop and pass value to variable
- * @param variableId variable identifier to which the value will be passed
+ * 
  */
-bool cg_pop_to ( char *variableId );
+bool cg_save_result (  );
 
 /**
- * @brief Generates code for stack version if STRLEN operation
+ * @brief Generates code for stack pop and pass value to variable
+ * @param parserData contains required information
+ */
+bool cg_save_to ( Parser_data *parserData );
+
+/**
+ * @brief Generates code for stack version of STRLEN operation
  */
 bool cg_lens(  );
+
+/**
+ * @brief Generates code for LENS for both stack top operands
+ */
+bool cg_lens_both (  );
 
 /**
  * @brief Generates code for ADDS

@@ -129,7 +129,7 @@ int get_next_token ( Token *token ) {
     Dynamic_string *scannerString = &str;
     if (!ds_init( scannerString )) return ERR_INTERNAL;
     
-    char ESstr[4], c;
+    char ESstr[3], c;
     while (true) {
 
         c = getc( srcF );
@@ -615,7 +615,6 @@ int get_next_token ( Token *token ) {
                         }
                         token->type = T_STR;
                         ds_free( scannerString ); 
-                        printf("(%s )\n", token->attribute.string->str); // TO DELETE
                         return SCAN_OK;
                     }
 
@@ -755,14 +754,12 @@ int get_next_token ( Token *token ) {
 
                 if (c >= '1' && c <= '9') {
                     ESstr[2] = c;
-                    char *ptr;
-                    int tmp = (int) strtol( ESstr, &ptr, 10 );
-                    c = (char) tmp;
-                    if (!ds_add_char( scannerString, c )) {
+
+                    int tmp = atoi( ESstr );
+                    if (!ds_add_char( scannerString, '\\' ) || !ds_add_chars( scannerString, ESstr )) {
                         ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
-
                     scannerState = SCANNER_STATE_STRING;
                 }
 
@@ -778,14 +775,22 @@ int get_next_token ( Token *token ) {
                 if (c >= '0' && c <= '9') {
                     ESstr[2] = c;
                     
-                    char *ptr;
-                    int tmp = (int) strtol( ESstr, &ptr, 10 );
-                    c = (char) tmp;
-                    if (!ds_add_char( scannerString, c )) {
-                        ds_free( scannerString );
-                        return ERR_INTERNAL;
+                    int tmp = atoi( ESstr );
+                    if (tmp > 32) {
+                        char *ptr;
+                        tmp = (int) strtol( ESstr, &ptr, 10 );
+                        c = (char) tmp;
+                        if (!ds_add_char( scannerString, c )) {
+                            ds_free( scannerString );
+                            return ERR_INTERNAL;
+                        }
                     }
-
+                    else {
+                        if (!ds_add_char( scannerString, '\\' ) || !ds_add_chars( scannerString, ESstr )) {
+                            ds_free( scannerString );
+                            return ERR_INTERNAL;
+                        }
+                    }
                     scannerState = SCANNER_STATE_STRING;
                 }
 

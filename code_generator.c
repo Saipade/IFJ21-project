@@ -2,6 +2,7 @@
 
 */
 
+#include "errorslist.h"
 #include "code_generator.h"
 #include "scanner.h"
 #include "string_processor.h"
@@ -41,8 +42,7 @@ bool cg_start (  ) {
     ADD_LINE( "DEFVAR GF@%tmp0" );
     ADD_LINE( "DEFVAR GF@%tmp1" );
     ADD_LINE( "DEFVAR GF@%tmp2" );
-    ADD_LINE( "DEFVAR GF@%res" );
-    ADD_LINE( "MOVE GF@%res nil@nil" );
+    ADD_LINE( "DEFVAR GF@%expResult" );
     ADD_LINE( "DEFVAR GF@%return" );
     // main function
     ADD_LINE( "JUMP $main");
@@ -55,8 +55,6 @@ bool cg_start (  ) {
     ADD_LINE( FUNCTION_SUBSTR );
     ADD_LINE( FUNCTION_ORD );
     ADD_LINE( FUNCTION_CHR );
-
-    //cg_function_header( "$main" );
 
     return true;
 
@@ -89,26 +87,32 @@ bool cg_function_header ( char *functionId ) {
 
 }
 
-bool cg_function_input_type ( char *inputId, Data_type dataType, int index ) {
+bool cg_function_param ( Parser_data *parserData ) {
 
-    char strIndex[32];
-    sprintf( strIndex, "%d", index );
+    char strIndex1[2]; // parameter index
+    char strIndex2[2]; // depth
+    sprintf( strIndex1, "%d", parserData->paramIndex );
+    sprintf( strIndex2, "%d", parserData->currentDepth );
     // declare variable inputId
-    ADD_CODE( "DEFVAR LF@");
-    ADD_LINE( inputId );
-    // pass index' retval value to it
-    ADD_CODE( "MOVE LF@" );
-    ADD_CODE( inputId );
-    ADD_CODE( " LF@%" );
-    ADD_LINE( strIndex );
+    ADD_CODE( "DEFVAR LF@%");
+    ADD_CODE( strIndex2 );
+    ADD_CODE( "%" );
+    ADD_LINE( parserData->currentVar->id );
+
+    ADD_CODE( "MOVE LF@%");
+    ADD_CODE( strIndex2 );
+    ADD_CODE( "%" );
+    ADD_CODE( parserData->currentVar->id );
+    ADD_CODE( " LF@%");
+    ADD_LINE( strIndex1 );
 
     return true;
 
 }
 
-bool cg_function_output_type ( Data_type dataType, int index ) {
+bool cg_function_retval ( Data_type dataType, int index ) {
     
-    char strIndex[32];
+    char strIndex[2];
     sprintf( strIndex, "%d", index );
     // declare output variable
     ADD_CODE( "DEFVAR LF@%retval");
@@ -128,7 +132,7 @@ bool cg_function_return ( char *functionId ) {
 
     ADD_CODE( "LABEL $" ); 
     ADD_CODE( functionId ); 
-    ADD_CODE( "$return\n" );
+    ADD_LINE( "$return" );
 	ADD_LINE( "POPFRAME" );
 	ADD_LINE( "RETURN" );
     
@@ -139,8 +143,7 @@ bool cg_function_return ( char *functionId ) {
 
 }
 
-/* ... */
-
+/*.......................................... FUNCTION CALL ..........................................*/
 
 
 bool cg_call ( char *functionId ) {
@@ -158,47 +161,91 @@ bool cg_frame_to_pass_param (  ) {
 
     return true;
 
-} 
+}
 
-bool cg_pass_param ( Token *token, int index ) {
+bool cg_pass_param ( Parser_data *parserData ) {
 
     char strIndex[2];
-    sprintf( strIndex, "%d", index );
+    sprintf( strIndex, "%d", parserData->paramIndex );
     ADD_CODE( "DEFVAR TF@%" );
+    ADD_LINE( strIndex );
+
+    ADD_CODE( "MOVE TF@%" );
     ADD_CODE( strIndex );
-    if (!cg_term( token )) return false;
-    ADD_LINE( "" );
+    ADD_LINE( " GF@%expResult" );
 
     return true;
 
 }
 
-bool cg_declare_var ( char *variableId ) {
+bool cg_pass_param_light ( Parser_data *parserData ) {
 
-    ADD_CODE( "DEFVAR LF@");
-    ADD_LINE( variableId );  
+    char strIndex[2];
+    sprintf( strIndex, "%d", parserData->paramIndex );
+    ADD_CODE( "DEFVAR TF@%" );
+    ADD_LINE( strIndex );
 
-    return true;
-
-}
-
-bool cg_define_var ( Item_data *item ) {
-    
-    ADD_CODE( "MOVE LF@" );
-    ADD_CODE( item->id );
+    ADD_CODE( "MOVE TF@%" );
+    ADD_CODE( strIndex );
     ADD_CODE( " " );
-    if (!cg_process_data_type( item->type )) return false;
+    if (!cg_term( &parserData->token, parserData->currentVar->depth )) return false;
+
+    return true;
+
+}
+
+bool cg_get_retval ( Item_data *variable, int index ) {
+
+    char strIndex1[2]; // variable depth
+    char strIndex2[2]; // retval index
+    sprintf( strIndex1, "%d", variable->depth );
+    sprintf( strIndex2, "%d", index );
+    
+    ADD_CODE( "MOVE LF@%" );
+    ADD_CODE( strIndex1 );
+    ADD_CODE( "%" );
+    ADD_CODE( variable->id );
+    
+    ADD_CODE( " TF@%retval" );
+    ADD_LINE( strIndex2 );
+
+    return true;
+
+}
+
+bool cg_declare_var ( Parser_data *parserData ) {
+
+    char strDepth[2];
+    sprintf( strDepth, "%d", parserData->currentDepth );
+    ADD_CODE( "DEFVAR LF@%" );
+    ADD_CODE( strDepth );
+    ADD_CODE( "%" );
+    ADD_LINE( parserData->currentVar->id );  
+
+    return true;
+
+}
+
+bool cg_define_var ( Parser_data *parserData ) {
+    
+    char strDepth[2];
+    sprintf( strDepth, "%d", parserData->currentDepth );
+    ADD_CODE( "MOVE LF@%" );
+    ADD_CODE( strDepth );
+    ADD_CODE( "%" );
+    ADD_CODE( parserData->lhsId->id );
+    ADD_CODE( " " );
+    if (!cg_process_data_type( parserData->lhsId->type )) return false;
     ADD_LINE( "" );
 
     return true;
 
 }
 
-bool cg_push ( Token *token ) {
+bool cg_push ( Token *token, int index ) {
 
     ADD_CODE( "PUSHS " );
-    if (!cg_term( token )) return false;
-    ADD_LINE( "" );
+    if (!cg_term( token, index )) return false;
 
     return true;
 
@@ -253,13 +300,14 @@ bool cg_process_data_type ( Data_type dataType ) {
 
 }
 
-bool cg_term ( Token *token ) {
+// form : for vars - fram@%depth%id, for const - type@val
+bool cg_term ( Token *token, int index ) {
 
     Dynamic_string str;
     Dynamic_string *tmpString = &str;
     if (!ds_init( tmpString )) return false;
     
-    char code[32];
+    char code[64];
     char c;
 
     switch (token->type) {
@@ -282,20 +330,7 @@ bool cg_term ( Token *token ) {
 
         case (T_STR):
         
-            for (int i = 0; c = (char) token->attribute.string->str[i] != '\0'; i++) {
-
-                if (c == '\\' || c == '#' || c <= 32 ) {
-                    ds_add_char( tmpString, '\\' );
-                    sprintf( code, "%03d", c );
-                    ds_add_chars( tmpString, code );
-                } 
-                
-                else {
-                    ds_add_char( tmpString, c );
-                }
-
-            }
-
+            if (!ds_copy( token->attribute.string, tmpString )) exit(ERR_INTERNAL);
             ADD_CODE( "string@" );
             ADD_CODE( tmpString->str );
 
@@ -303,16 +338,19 @@ bool cg_term ( Token *token ) {
 
         case (T_IDE): 
 
-            ADD_CODE( "LF@" );
-            ADD_CODE( tmpString->str );
+            sprintf( code, "%d", index);
+            ADD_CODE( "LF@%" );
+            ADD_CODE( code ); // (depth)
+            ADD_CODE( "%" );
+            ADD_CODE( token->attribute.string->str );
             
         break;
 
-        // case (T_BOO): until better times
+        /* case (T_BOO): until better times
 
-            // ADD_CODE( "bool@false" );
+            ADD_CODE( "bool@false" );
 
-        // break;
+        break; */
 
         case (T_NIL):
 
@@ -331,6 +369,8 @@ bool cg_term ( Token *token ) {
 
 
     }
+
+    ADD_LINE( "" );
 
     ds_free( tmpString );
     return true;
@@ -412,10 +452,24 @@ bool cg_if_header ( int index, int depth ) {
 
 /* .......................................... EXPRESSION .......................................... */
 
-bool cg_pop_to ( char *variableId ) {
+bool cg_save_result (  ) {
 
-    ADD_CODE( "POPS LF@" );
-    ADD_LINE( variableId );
+    ADD_LINE( "POPS GF@%expResult");
+
+    return true;
+
+}
+
+bool cg_save_to ( Parser_data *parserData ) {
+
+    char strDepth[2];
+    sprintf( strDepth, "%d", parserData->currentDepth );
+    ADD_CODE( "MOVE " );
+    ADD_CODE( "LG@%" );
+    ADD_CODE( strDepth );
+    ADD_CODE( "%" );
+    ADD_CODE( parserData->lhsId->id );
+    ADD_LINE( " GF@%expResult");
 
     return true;
 
@@ -425,7 +479,20 @@ bool cg_lens (  ) {
 
     ADD_LINE( "POPS GF@%tmp0" );
     ADD_LINE( "STRLEN GF@%tmp1 GF@%tmp0" );
-    ADD_LINE( "PUSHS GF@%tmp1")
+    ADD_LINE( "PUSHS GF@%tmp1" );
+
+    return true;
+
+}
+
+bool cg_lens_both (  ) {
+
+    ADD_LINE( "POPS GF@%tmp0" );
+    ADD_LINE( "POPS GF@%tmp1" );
+    ADD_LINE( "STRLEN GF@%tmp2 GF@%tmp0" );
+    ADD_LINE( "STRLEN GF@%tmp1 GF@%tmp1" );
+    ADD_LINE( "PUSHS GF@%tmp2" );
+    ADD_LINE( "PUSHS GF@%tmp1" );
 
     return true;
 
