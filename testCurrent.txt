@@ -1,8 +1,11 @@
 require "ifj21"
-function main(a : integer, b : string) : string, integer -- 15	
+
+global notmain : function(integer) : integer, integer
+
+function main(a : integer, b : string) : string, integer -- 15
 	local int1 : integer = 52+102/14
 	local int3 : integer
-	int1, int3 = 10*10, 52
+	int1, int3 = 16/10, 52
 	local int2 : integer = 0
 	--int1 = int1 + int2
 	local str1 : string = "rtrgfgf"
@@ -10,3 +13,13 @@ function main(a : integer, b : string) : string, integer -- 15
 	local str2 : string = "HELLO\nWORLD"
 	write(str1..ffg..str2)
 end
+
+function notmain(gfvce : integer) : integer, integer
+	local str5 : string = "rtrgfgf"
+	local str1 : string = "fgfgfx"
+	local int2 : integer = 5
+	local int5 : number = 3.4
+	return str5
+end
+
+main()

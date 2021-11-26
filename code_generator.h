@@ -1,7 +1,3 @@
-/**
- * Header file of code generator
- */
-
 #ifndef CODE_GENERATOR_H
 #define CODE_GENERATOR_H
 
@@ -27,73 +23,95 @@
 
 // function reads() : string
 #define FUNCTION_READS                                                      \
-    "# Reads function\n"                                                    \
+    "JUMP $over$reads\n"                                                    \
+    "\n"                                                                    \
+    "# Function reads\n"                                                    \
     "LABEL $reads\n"                                                        \
     "PUSHFRAME\n"                                                           \
-    "DEFVAR LF@%retval\n"                                                   \
-    "READ LF@%retval string\n"                                              \
+    "DEFVAR LF@%retval0\n"                                                  \
+    "READ LF@%retval0 string\n"                                             \
                                                                             \
     "LABEL $reads$ret\n"                                                    \
     "POPFRAME\n"                                                            \
-    "RETURN\n"                                                 
+    "RETURN\n"                                                              \
+    "\n"                                                                    \
+    "LABEL $over$reads\n"
 
 // function readi() : integer
 #define FUNCTION_READI                                                      \
-    "# Readi function\n"                                                    \
+    "JUMP $over$readi\n"                                                    \
+    "\n"                                                                    \
+    "# Function readi\n"                                                    \
     "LABEL $readi\n"                                                        \
     "PUSHFRAME\n"                                                           \
-    "DEFVAR LF@%retval\n"                                                   \
-    "READ LF@%retval int\n"                                                 \
+    "DEFVAR LF@%retval0\n"                                                  \
+    "READ LF@%retval0 int\n"                                                \
                                                                             \
     "LABEL $readi$ret\n"                                                    \
     "POPFRAME\n"                                                            \
-    "RETURN\n"
+    "RETURN\n"                                                              \
+    "\n"                                                                    \
+    "LABEL $over$readi\n"
     
 // function readn() : number
 #define FUNCTION_READN                                                      \
-    "# Readn function\n"                                                    \
+    "JUMP $over$readn\n"                                                    \
+    "\n"                                                                    \
+    "# Function readn\n"                                                    \
     "LABEL $readn\n"                                                        \
     "PUSHFRAME\n"                                                           \
-    "DEFVAR LF@%retval\n"                                                   \
-    "READ LF@%retval float\n"                                               \
+    "DEFVAR LF@%retval0\n"                                                  \
+    "READ LF@%retval0 float\n"                                              \
                                                                             \
     "LABEL $readn$ret\n"                                                    \
     "POPFRAME\n"                                                            \
-    "RETURN\n"
+    "RETURN\n"                                                              \
+    "\n"                                                                    \
+    "LABEL $over$readn\n"
     
 // function write
 #define FUNCTION_WRITE                                                      \
-    "# Write function\n"                                                    \
+    "JUMP $over$write\n"                                                    \
+    "\n"                                                                    \
+    "# Function write\n"                                                    \
     "LABEL $write\n"                                                        \
     "PUSHFRAME\n"                                                           \
     "WRITE LF@%0\n"                                                         \
                                                                             \
     "LABEL $write$ret\n"                                                    \
     "POPFRAME\n"                                                            \
-    "RETURN\n"
+    "RETURN\n"                                                              \
+    "\n"                                                                    \
+    "LABEL $over$write\n"
 
 // function tointeger(f : number) : integer
 #define FUNCTION_TOINTEGER                                                  \
-    "# Tointeger function\n"                                                \
+    "JUMP $over$tointeger\n"                                                \
+    "\n"                                                                    \
+    "# Function tointeger\n"                                                \
     "LABEL $tointeger\n"                                                    \
     "PUSHFRAME\n"                                                           \
-    "DEFVAR LF@%retval\n"                                                   \
+    "DEFVAR LF@%retval0\n"                                                  \
     "DEFVAR LF@%nilcheck\n"                                                 \
     "EQ LF@%nilcheck LF@%0 nil@nil\n"                                       \
     "JUMPIFEQ $tointeger$nil LF@nilcheck bool@true\n"                       \
                                                                             \
-    "FLOAT2INT LF@%retval LF@%0\n"                                          \
+    "FLOAT2INT LF@%retval0 LF@%0\n"                                         \
     "JUMP $tointeger$ret\n"                                                 \
                                                                             \
     "LABEL $tointeger$nil\n"                                                \
-    "MOVE LF@%retval nil@nil\n"                                             \
+    "MOVE LF@%retval0 nil@nil\n"                                            \
     "LABEL $tointeger$ret\n"                                                \
     "POPFRAME\n"                                                            \
-    "RETURN\n"
+    "RETURN\n"                                                              \
+    "\n"                                                                    \
+    "LABEL $over$tointeger\n"
 
 // function substr(s : string, i : number, j : number) : string
 #define FUNCTION_SUBSTR                                                     \
-    "# SUBSTR function\n"                                                   \
+    "JUMP $over$substr\n"                                                   \
+    "\n"                                                                    \
+    "# Function substr\n"                                                   \
     "LABEL $substr\n"                                                       \
     "PUSHFRAME"                                                             \
     "DEFVAR LF@%s\n"                                                        \
@@ -145,16 +163,19 @@
     "JUMP $substr$ret\n"                                                    \
                                                                             \
     "LABEL $substr$err8\n"                                                  \
-    "MOVE LF@%retval0 int@8\n"                                              \
-    "JUMP $substr$ret\n"                                                    \
+    "EXIT int@8\n"                                                          \
                                                                             \
     "LABEL $substr$ret\n"                                                   \
     "POPFRAME\n"                                                            \
     "RETURN\n"                                                              \
+    "\n"                                                                    \
+    "LABEL $over$substr\n"
 
 // function ord(s : string, i : integer) : integer 
 #define FUNCTION_ORD                                                        \
-    "# Ord function\n"                                                      \
+    "JUMP $over$ord\n"                                                      \
+    "\n"                                                                    \
+    "# Function ord\n"                                                      \
     "LABEL $ord\n"                                                          \
     "PUSHFRAME\n"                                                           \
     "DEFVAR LF@%s\n"                                                        \
@@ -188,16 +209,19 @@
     "JUMP $ord$ret\n"                                                       \
                                                                             \
     "LABEL $ord$err8\n"                                                     \
-    "MOVE LF@%retval0 int@8\n"                                              \
-    "JUMP $ord$ret\n"                                                       \
+    "EXIT int@8\n"                                                          \
                                                                             \
     "LABEL $ord$ret\n"                                                      \
     "POPFRAME\n"                                                            \
     "RETURN\n"                                                              \
+    "\n"                                                                    \
+    "LABEL $over$ord\n"
     
 // function chr(i : integer) : string
 #define FUNCTION_CHR                                                        \
-    "# Chr function\n"                                                      \
+    "JUMP $over$chr\n"                                                      \
+    "\n"                                                                    \
+    "# Function chr\n"                                                      \
     "LABEL $chr\n"                                                          \
     "PUSHFRAME\n"                                                           \
     "DEFVAR LF@%i\n"                                                        \
@@ -219,12 +243,13 @@
     "JUMP $ord$ret\n"                                                       \
                                                                             \
     "LABEL $chr$err8\n"                                                     \
-    "MOVE LF@%retval0 int@8\n"                                              \
-    "JUMP $chr$ret\n"                                                       \
+    "EXIT int@8\n"                                                          \
                                                                             \
     "LABEL $chr$ret\n"                                                      \
     "POPFRAME\n"                                                            \
-    "RETURN\n"
+    "RETURN\n"                                                              \
+    "\n"                                                                    \
+    "LABEL $over$chr\n"
 
 // prints entire result code (for debugging reasons. to delete before commit)
 void print_out (  );
@@ -232,46 +257,66 @@ void print_out (  );
 /**
  * @brief Prints out result code to destination file (STDOUT)
  * @param outoutFile file the result code will be written to
+ * @return Error
  */
 void cg_output ( FILE *outputFile );
 
 /**
  * @brief Sets pointer to the string initialized in parser
  * @param string given string
+ * @return Error
  */
 void _code_string ( Dynamic_string *string );
 
 /**
  * @brief Generates code for the start of the program (built-in functions, jump to main)
+ * @return Error
  */
 bool cg_start (  );
 
 /**
  * @brief Generates code for the end of program (stack clear, popframe)
+ * @return Error
  */
 bool cg_end (  );
 
 /**
  * @brief Generates code for header of function
  * @param functionId function identifier
+ * @return Error
  */
 bool cg_function_header ( char *functionId );
 
 /**
  * @brief Generates code for function input variables
  * @param parserData contains required information
+ * @return Error
  */
 bool cg_function_param ( Parser_data *parserData );
 
 /**
- * @brief Generates code for function output
- * @param dataType data type of given parameter
- * @param index index of given parameter
+ * @brief Defines function output
+ * @param index index of retval
+ * @return Error
  */
-bool cg_function_retval ( Data_type dataType, int index );
+bool cg_function_retval ( int index );
 
 /**
- * @brief Generates code for function return (LABEL, RET)
+ * @brief Sets return values according to expressions after RETURN keyword
+ * @param index index of retval
+ * @return Error
+ */
+bool cg_function_retval_get_value ( int index );
+
+/**
+ * @brief Generates code for jump to function end
+ * @param functionId function name
+ * @return Error
+ */
+bool cg_jump_to_end ( char *functionId );
+
+/**
+ * @brief Generates code for function return
  * @param functionId Function identifier
  */
 bool cg_function_return ( char *functionId );
@@ -374,6 +419,16 @@ bool cg_convert_2nd_int2num (  );
  * @brief Converts both operands to number
  */
 bool cg_convert_both_int2num (  );
+
+/**
+ * @brief Converts expression result to integer
+ */
+bool cg_convert_res_num2int (  );
+
+/**
+ * @brief Converts expression result to number
+ */
+bool cg_convert_res_int2num (  );
 
 /**
  * @brief 

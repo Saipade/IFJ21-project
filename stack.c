@@ -1,7 +1,6 @@
-/*
-    Implementation of stack for expression processing
-
-*/
+/**
+ * PROJECT:
+ */
 
 
 #include "stack.h"
@@ -12,7 +11,7 @@ void s_init ( Stack *stack ) {
 
 }
 
-void s_push ( Stack *stack, Data_type type, pt_terminal symbol ) {
+void s_push ( Stack *stack, Data_type type, pt_symbol symbol ) {
 
     Stack_item *newItem = malloc( sizeof ( Stack_item ) );
     if (!newItem) return;
@@ -24,7 +23,7 @@ void s_push ( Stack *stack, Data_type type, pt_terminal symbol ) {
     
 }
 
-void s_push_before_terminal ( Stack *stack, Data_type type, pt_terminal symbol ) {
+void s_push_before_terminal ( Stack *stack, Data_type type, pt_symbol symbol ) {
 
     Stack_item *newItem = malloc( sizeof ( Stack_item ) );
     if (!newItem) return;

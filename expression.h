@@ -55,7 +55,7 @@ typedef enum {
     STOP,               // stop sign
     
 
-} pt_terminal;
+} pt_symbol;
 
 typedef enum {
 

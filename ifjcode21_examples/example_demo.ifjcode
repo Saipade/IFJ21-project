@@ -18,8 +18,7 @@ WRITE LF@param1
 MOVE LF@%retval1 float@0x0p+0
 POPFRAME
 # callee restores
-RETURN 
-
+RETURN  
 LABEL $$main # main body
 CREATEFRAME  # no main-body vars
 PUSHFRAME

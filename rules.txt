@@ -6,35 +6,39 @@
 3.<function list> -> <function definition> <function list>
 4.<function list> -> EOF
 
-4.<function declaration> -> GLOBAL ID : FUNCTION ( <declaration params> ) <output>
-5-6.<declaration params> -> e | type <other declaration param>
-7-8.<other declaration param> -> e | , type <other declaration param>
+5.<function declaration> -> GLOBAL ID : FUNCTION ( <declaration params> ) <output>
+6-7.<declaration params> -> e | type <other declaration param>
+8-9.<other declaration param> -> e | , type <other declaration param>
 
-9.<function definition> -> FUNCTION ID ( <definition params> ) <output> <statement list> END
-10-11.<definition params> -> e | <param> <other definition param>
-12-13.<other definition param> -> e | , <param> <other definition param>
-14.<param> -> ID : type
+10.<function definition> -> FUNCTION ID ( <definition params> ) <output> <statement list> END
+11-12.<definition params> -> e | <param> <other definition param>
+13-14.<other definition param> -> e | , <param> <other definition param>
+15.<param> -> ID : type
 
-15.<output> -> type <other output type>
-16-17.<other output type> -> e | , type <other output type>
+16.<output> -> type <other output type>
+17-18.<other output type> -> e | , type <other output type>
 
 -------
 
-18.<statement list> -> e | <statement> <statement list>
+19.<statement list> -> e | <statement> <statement list>
 
-19.<statement> -> WRITE (<write argument list>)
-20.<write argument list> -> <expression> <other write argument>
-21-22.<other write argument> -> e | , <expression> <other write argument>
+20.<statement> -> WRITE (<write argument list>)
+21.<write argument list> -> <expression> <other write argument>
+22-23.<other write argument> -> e | , <expression> <other write argument>
 
-23.<statement list> -> <ID list> <assignment values>
-24.<ID list> -> ID <other ID>
-25-26.<other ID> -> e | , ID <other ID>
-27.<assignment values> -> <assignment value> <other assignment value>
-28-29.<other assignment value> -> e | , <assignment value> <other assignment value>
-30-31.<assignment value> -> ID(<function call params>) | <expression>
+24.<statement> -> <ID list> <assignment values>
+25.<ID list> -> ID <other ID>
+26-27.<other ID> -> e | , ID <other ID>
+28.<assignment values> -> <assignment value> <other assignment value>
+29-30.<other assignment value> -> e | , <assignment value> <other assignment value>
+31-32.<assignment value> -> ID(<function call params>) | <expression>
 
-32. <function call params> -> <call param> <other call param>
-33-34. <other call param> -> e | , <call param> <other call param>
-35. <call param>
+33. <function call params> -> <call param> <other call param>
+34-35. <other call param> -> e | , <call param> <other call param>
+36. <call param> -> process
+
+37. <statement> -> return <value list>
+
+
 
 TBD

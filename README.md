@@ -9,3 +9,5 @@ democvika z roku 2008
 http://what-when-how.com/compiler-writing/scanners-compiler-writing-part-1/ - scanners  
 kniha meduny Elements of compiler design 
 http://ce.sharif.edu/courses/94-95/1/ce414-2/resources/root/Text%20Books/Compiler%20Design/Alfred%20V.%20Aho,%20Monica%20S.%20Lam,%20Ravi%20Sethi,%20Jeffrey%20D.%20Ullman-Compilers%20-%20Principles,%20Techniques,%20and%20Tools-Pearson_Addison%20Wesley%20(2006).pdf  
+
+то что было в xgalli01-path перевел в tmp,xgalli01-path удалил

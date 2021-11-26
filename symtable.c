@@ -1,8 +1,9 @@
 /**
+ * PROJECT: Implementation of imperative IFJ21 programming language compiler
+ * PART: Symbol table
  * 
- * 
- * 
- * 
+ * AUTHOR(S): Sadovskyi Dmytro (xsadov06)
+ *            Galliamov Eduard (xgalli01)
  */
 
 #include "symtable.h"
@@ -57,6 +58,8 @@ Item_data *st_add_id ( Sym_table *symTable, char *key ) {
     strcpy( newItem->key, key );
     strcpy( newItem->data.id, newItem->key);
     newItem->leftItem = newItem->rightItem = NULL;
+    newItem->data.ifdec = 0;
+    newItem->data.ifdef = 0;
 
     st_insert( &(symTable->rootItem), newItem );
 
@@ -65,9 +68,9 @@ Item_data *st_add_id ( Sym_table *symTable, char *key ) {
 }
 
 int st_insert ( Sym_table_itemPtr *rootItem, Sym_table_itemPtr newItem ) {
-
+    
     if (newItem == NULL) return ERR_INTERNAL;
-
+    
     if (rootItem == NULL || (*rootItem) == NULL) {
 
         *rootItem = newItem;
@@ -223,14 +226,12 @@ void st_dispose ( Sym_table_itemPtr *rootItem ) {
         free( (*rootItem)->data.inputTypes );
         free( (*rootItem)->data.outputTypes->str );
         free( (*rootItem)->data.outputTypes );
-        free( (*rootItem) );
 
         (*rootItem)->key = NULL;
         (*rootItem)->data.inputTypes->str = NULL;
         (*rootItem)->data.inputTypes = NULL;
         (*rootItem)->data.outputTypes->str = NULL;
         (*rootItem)->data.outputTypes = NULL;
-        (*rootItem) = NULL;
 
     } 
 

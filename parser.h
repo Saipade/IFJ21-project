@@ -1,7 +1,3 @@
-/*
-
-*/
-
 #ifndef PARSER_H
 #define PARSER_H
 
@@ -54,16 +50,17 @@ typedef struct {
 
     Token token;                // token got by get_next_token func
     Queue queue;                // queue structure for multiple assignment
-    Sym_table symTable[20];     // 
-    SymTable_Stack_item SStack; // symbol table stack 
+    Sym_table symTable[20];     // array of symbol tables
     Item_data *lhsId;           // left-hand  side func/var identifier
     Item_data *rhsId;           // right-hand side func/var identifier
     Item_data *currentVar;      // pointer to current variable
     Item_data *currentFunc;     // pointer to current function
     Item_data *insideFunc;      // pointer on function that parser currently in
+    Data_type expType;          // type of expression result
 
     bool inLoop;                // if parser is in if-statement/while cycle
 
+    int loopCount;              // number of if-while
     int currentDepth;           // depth for local symtables
     int whereAmI;               // function declaration or function definition
     int paramIndex;             // index of function parameter/retval
@@ -134,11 +131,18 @@ int parse (  );
 int rule_prologue ( Parser_data *parserData );
 
 /**
- * @brief <function list> -> <function declaration> <function list> | <function declaration> <function list>
+ * @brief <function list> -> <function declaration> <function list> | <function declaration> <function list> | <entry point>
  * @param parserData syntax analysis data structure
  * @return Error code
  */
 int rule_functionList ( Parser_data *parserData );
+
+/**
+ * @brief <entry point> -> ID () 
+ * @param parserData syntax analysis data structure
+ * @return Error code
+ */
+int rule_entryPoint ( Parser_data *parserData );
 
 /**
  * @brief <function declaration> -> GLOBAL ID : FUNCTION ( <declaration params> ) <output>
@@ -279,6 +283,28 @@ int rule_optionalDefinition ( Parser_data *parserData );
  * @return Error code
  */
 int rule_value ( Parser_data *parserData );
+
+/**
+ * @brief <return list> -> ε | <return value> <other return value>
+ * @param parserData syntax analysis data structure
+ * @return Error code
+ */
+int rule_returnList( Parser_data *parserData );
+
+/**
+ * @brief <other return value> -> ε | , <return value> <other return value>
+ * @param parserData syntax analysis data structure
+ * @return Error code
+ */
+int rule_otherReturnValue ( Parser_data *parserData );
+
+/**
+ * @brief <return value> -> process return value
+ * @param parserData syntax analysis data structure
+ * @return Error code
+ */
+int rule_returnValue ( Parser_data *parserData );
+
 
 /**
  * @brief <write argument list> -> ε | <expression> <other write argument>

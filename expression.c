@@ -1,7 +1,9 @@
 /**
- *  PROJECT: Implementation of imperative language compiler (IFJ21)
- *  PART: EXPRESSION PROCESSING
- *  AUTHOR(S): Maksim Tikhonov (xtikho00)
+ * PROJECT: Implementation of imperative IFJ21 programming language compiler
+ * PART: Expression processing
+ * 
+ * AUTHOR(S): Sadovskyi Dmytro (xsadov06)
+ *            Galliamov Eduard (xgalli01)
  */
 
 #include "errorslist.h"
@@ -29,14 +31,14 @@ pt_operation precedenceTable[9][9] = {
 	   { S , S , S , S , B , S , S , S , B }, // $
 };
 
-int shift ( Parser_data *parserData, Stack *stack, Data_type type, pt_terminal symbol );
+int shift ( Parser_data *parserData, Stack *stack, Data_type type, pt_symbol symbol );
 int reduce ( Parser_data *parserData );
 pt_rule check_rule ( int count, Stack_item *item1, Stack_item *item2, Stack_item *item3 );
 Data_type test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_rule rule );
-pt_terminal convert_token_2_symbol ( Parser_data *parserData );
-pt_terminal convert_id_2_symbol ( Parser_data *parserData );
+pt_symbol convert_token_2_symbol ( Parser_data *parserData );
+pt_symbol convert_id_2_symbol ( Parser_data *parserData );
 int convert_token_2_type( Parser_data *parserData );
-pt_index get_pt_index ( pt_terminal symbol );
+pt_index get_pt_index ( pt_symbol symbol );
 int generate_operation ( pt_rule ruleName );
 int save_result ( Parser_data *parserData, Stack *stack );
 
@@ -48,22 +50,16 @@ Stack *stack = &st;
  * @param parserData contains token information
  * @return symbol
  */
-pt_terminal convert_token_2_symbol ( Parser_data *parserData ) {
-
+pt_symbol convert_token_2_symbol ( Parser_data *parserData ) {
+    
     if (parserData->token.type == T_KEY || parserData->token.type >= DOL) {
 
         return DOL;
 
     }
 
-    /* else if ( parserData->token.type == T_IDE) {
-        
-        return convert_id_2_symbol( parserData );
-
-    } */
-
     else {
-
+        
         return parserData->token.type;
 
     }
@@ -75,7 +71,7 @@ pt_terminal convert_token_2_symbol ( Parser_data *parserData ) {
  * @param parserData contains item information
  * @return symbol
  */
-pt_terminal convert_id_2_symbol ( Parser_data *parserData ) {
+pt_symbol convert_id_2_symbol ( Parser_data *parserData ) {
 
     int res;
     Item_data *data;
@@ -88,34 +84,17 @@ pt_terminal convert_id_2_symbol ( Parser_data *parserData ) {
     switch (data->type) {
 
         case (T_INT):
-
             return INT;
-
-        break;
-
         case (T_NUM):
-
             return NUM;
-
-        break;
-
         case (T_STR):
-        
             return STR;
-
-        break;
-
+        case (T_BOO):
+            return BOO;
         case (T_NIL):
-
             return NIL;
-
-        break;
-
         default:
-
             return NDA;
-
-        break;
 
     }
 
@@ -164,7 +143,7 @@ int convert_token_2_type( Parser_data *parserData ) {
  * @param symbol symbol
  * @return precedence table index
  */
-pt_index get_pt_index ( pt_terminal symbol ) {
+pt_index get_pt_index ( pt_symbol symbol ) {
 
     switch (symbol) {
 
@@ -231,8 +210,8 @@ int rule_expression ( Parser_data *parserData ) {
     s_init( stack );
     s_push( stack, T_DOL, DOL );
     
-    pt_terminal firstTerminalSymbol;
-    pt_terminal nextSymbol;
+    pt_symbol firstTerminalSymbol;
+    pt_symbol nextSymbol;
     Data_type nextType;
     pt_operation currentOperation;
     bool success = false;
@@ -268,6 +247,7 @@ int rule_expression ( Parser_data *parserData ) {
             break;
             // Blank space
             case B:
+
                 while (s_top_terminal_symbol( stack ) != DOL) {
                     if (res = reduce( parserData )) exit( res );
                 }
@@ -299,7 +279,7 @@ int rule_expression ( Parser_data *parserData ) {
  * @param symbol symbol to be pushed
  * @return error code
  */
-int shift ( Parser_data *parserData, Stack *stack, Data_type type, pt_terminal symbol ) {
+int shift ( Parser_data *parserData, Stack *stack, Data_type type, pt_symbol symbol ) {
 
     int res = 0;
     
@@ -386,7 +366,7 @@ int reduce ( Parser_data *parserData ) {
     if (resRule == ND_RULE) exit( ERR_SYNTAX );
     
     Data_type resType = test_semantic( item1, item2, item3, resRule );
-    
+    parserData->expType = resType;
     if (res = generate_operation( resRule ));
     // pop out all "consumed" symbols and stop sign
     for (int i = 0; i <= count; i++) s_pop( stack );
@@ -485,7 +465,6 @@ Data_type test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item
         case E_RULE:
             
             if (item1->type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
-            if (item1->type == T_NIL) exit( ERR_NIL );
             
         return item1->type;
 
@@ -683,7 +662,7 @@ int save_result ( Parser_data *parserData, Stack *stack ) {
     if (!parserData->lhsId) return 0;
 
     int res = 0;
-    pt_terminal resultType = s_top_type( stack );
+    pt_symbol resultType = s_top_type( stack );
     
     // check variable's and expression's types compatibility
     switch (resultType) {

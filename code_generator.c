@@ -1,6 +1,9 @@
-/*
-
-*/
+/**
+ * PROJECT: Implementation of imperative IFJ21 programming language compiler
+ * PART: Code generator
+ * 
+ * AUTHOR(S): Maksim Tikhonov (xtikho00)
+ */
 
 #include "errorslist.h"
 #include "code_generator.h"
@@ -44,12 +47,10 @@ bool cg_start (  ) {
     ADD_LINE( "DEFVAR GF@%tmp2" );
     ADD_LINE( "DEFVAR GF@%expResult" );
     ADD_LINE( "DEFVAR GF@%return" );
-    // main function
-    ADD_LINE( "JUMP $main");
     // add built-in functions
     ADD_LINE( FUNCTION_READS );
     ADD_LINE( FUNCTION_READI );
-    ADD_LINE( FUNCTION_READS );
+    ADD_LINE( FUNCTION_READN );
     ADD_LINE( FUNCTION_WRITE );
     ADD_LINE( FUNCTION_TOINTEGER );
     ADD_LINE( FUNCTION_SUBSTR );
@@ -73,7 +74,12 @@ bool cg_end (  ) {
 
 bool cg_function_header ( char *functionId ) {
 
-    ADD_CODE( "\n# Function " );
+    ADD_LINE( "" );             // generate jump over function definition
+    ADD_CODE( "JUMP $over$" );
+    ADD_LINE( functionId );
+    ADD_LINE( "" );
+
+    ADD_CODE( "# Function " );
     ADD_CODE( functionId );
     ADD_LINE( ":" );
     ADD_LINE( "" );
@@ -110,19 +116,39 @@ bool cg_function_param ( Parser_data *parserData ) {
 
 }
 
-bool cg_function_retval ( Data_type dataType, int index ) {
+bool cg_function_retval ( int index ) {
     
     char strIndex[2];
     sprintf( strIndex, "%d", index );
     // declare output variable
-    ADD_CODE( "DEFVAR LF@%retval");
+    ADD_CODE( "DEFVAR LF@%1%retval");
     ADD_LINE( strIndex );
     // assign type to it
-    ADD_CODE( "MOVE LF@%retval");
+    ADD_CODE( "MOVE LF@%1%retval");
     ADD_CODE( strIndex );
-    ADD_CODE( " " );
-    if (!cg_process_data_type( dataType )) return false;
-    ADD_LINE( "" );
+    ADD_LINE( " nil@nil" ); // for correct return 
+
+    return true;
+
+}
+
+bool cg_function_retval_get_value ( int index ) {
+
+    char strIndex[2];
+    sprintf( strIndex, "%d", index );
+    ADD_CODE( "MOVE LF@%1%retval" );
+    ADD_CODE( strIndex );
+    ADD_LINE( " GF@expResult");
+
+    return true;
+
+}
+
+bool cg_jump_to_end ( char *functionId ) {
+
+    ADD_CODE( "JUMP $" );
+    ADD_CODE( functionId );
+    ADD_LINE( "$ret" );
 
     return true;
 
@@ -132,12 +158,18 @@ bool cg_function_return ( char *functionId ) {
 
     ADD_CODE( "LABEL $" ); 
     ADD_CODE( functionId ); 
-    ADD_LINE( "$return" );
+    ADD_LINE( "$ret" );
 	ADD_LINE( "POPFRAME" );
 	ADD_LINE( "RETURN" );
     
-    ADD_CODE( "\n# End of function" );
+    ADD_LINE( "" );
+    ADD_CODE( "# End of function " );
     ADD_LINE( functionId );
+
+    ADD_LINE( "" );     // generate label for jump
+    ADD_CODE( "LABEL $over$" );
+    ADD_LINE( functionId );
+    ADD_LINE( "" );
 
     return true;
 
@@ -426,6 +458,22 @@ bool cg_convert_both_int2num (  ) {
 
     if (!cg_convert_1st_int2num(  )) return false;
     if (!cg_convert_2nd_int2num(  )) return false;
+
+    return true;
+
+}
+
+bool cg_convert_res_num2int (  ) {
+
+    ADD_LINE( "FLOAT2INT GF@expResult GF@expResult" );
+
+    return true;
+
+}
+
+bool cg_convert_res_int2num (  ) {
+
+    ADD_LINE( "INT2FLOAT GF@expResult GF@expResult" );
 
     return true;
 

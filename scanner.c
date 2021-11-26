@@ -1,6 +1,9 @@
-/*
-
-*/
+/**
+ * PROJECT: Implementation of imperative programming language translator (IFJ21)
+ * PART: Lexical analyzer (scanner)
+ *
+ * AUTHOR(S): Maksim Tikhonov (xtikho00) 
+ */
 
 #include "errorslist.h"
 #include "scanner.h"
@@ -95,8 +98,8 @@ int _keyword_or_id ( Dynamic_string *str, Token *token ) {
     }
     
     else {
-
-        token->type = T_KEY;
+        if (token->attribute.keyword == KW_NIL) token->type = T_NIL;
+        else token->type = T_KEY;
         ds_free( str );
         return SCAN_OK;
 
@@ -140,7 +143,7 @@ int get_next_token ( Token *token ) {
                 
                 if (c == ' ' || c == '\n' || c == '\t' || c == 13) {
                     if (c == '\n' || c == 13) {
-                        printf("\n"); // for debugging resasons, delete before commiting
+                        //printf("\n"); // for debugging resasons, delete before commiting
                     }
 
                     scannerState = SCANNER_STATE_START;
@@ -405,16 +408,15 @@ int get_next_token ( Token *token ) {
                 }
                 
             break;
-
+            
             // RELATIONSHIPS OPERATORS
             case (SCANNER_STATE_MT):
 
-                if (c == '=') {
+                if (c == '=') { 
                     token->type = T_MET;
                 }
 
-                else {
-
+                else { 
                     ungetc( c, srcF );
                     token->type = T_MTH;
                     
