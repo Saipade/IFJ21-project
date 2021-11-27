@@ -1010,7 +1010,7 @@ int rule_value ( Parser_data *parserData ) {
                 if      (parserData->lhsId->type == T_NUM && type == T_INT) {
                     if (!cg_convert_res_int2num( m_ret )) exit( ERR_INTERNAL );
                 } 
-                else if (parserData->lhsId->tyfpe == T_INT && type == T_NUM) {
+                else if (parserData->lhsId->type == T_INT && type == T_NUM) {
                     if (!cg_convert_res_num2int( m_ret )) exit( ERR_INTERNAL );
                 } 
                 else exit( ERR_SEMANTIC_FUNC_PAR );
