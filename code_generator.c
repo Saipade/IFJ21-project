@@ -39,7 +39,6 @@ void cg_output ( FILE *outputFile ) {
 
 bool cg_start (  ) {
     // prologue
-    ADD_LINE("");
     ADD_LINE( ".IFJcode21" );
     // define global variables for some operations
     ADD_LINE( "DEFVAR GF@%tmp0" );
@@ -463,17 +462,37 @@ bool cg_convert_both_int2num (  ) {
 
 }
 
-bool cg_convert_res_num2int (  ) {
+bool cg_convert_res_num2int ( Res_mode mode ) {
 
-    ADD_LINE( "FLOAT2INT GF@expResult GF@expResult" );
+    switch (mode) {
+
+        case (m_exp):
+            ADD_LINE( "FLOAT2INT GF@expResult GF@expResult" );
+        break;
+        
+        case (m_ret):
+            ADD_LINE( "FLOAT2INT TF@%1%retval0 TF@%1%retval0" );
+        break;
+
+    }
 
     return true;
 
 }
 
-bool cg_convert_res_int2num (  ) {
+bool cg_convert_res_int2num ( Res_mode mode ) {
 
-    ADD_LINE( "INT2FLOAT GF@expResult GF@expResult" );
+    switch (mode) {
+
+        case (m_exp):
+            ADD_LINE( "INT2FLOAT GF@expResult GF@expResult" );
+        break;
+        
+        case (m_ret):
+            ADD_LINE( "INT2FLOAT TF@%1%retval0 TF@%1%retval0" );
+        break;
+        
+    }
 
     return true;
 

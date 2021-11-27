@@ -1,44 +1,59 @@
-0.<program> -> <prologue> <function list>
+0. <program> -> <prologue> <function list>
 
-1.<prologue> -> require "ifj21"
+1. <prologue> -> require "ifj21"
 
-2.<function list> -> <function declaration> <function list>
-3.<function list> -> <function definition> <function list>
-4.<function list> -> EOF
+2. <function list> -> <function declaration> <function list>
+3. <function list> -> <function definition> <function list>
+4. <function list> -> <entry point> <function list>
+5. <function list> -> EOF
 
-5.<function declaration> -> GLOBAL ID : FUNCTION ( <declaration params> ) <output>
-6-7.<declaration params> -> e | type <other declaration param>
-8-9.<other declaration param> -> e | , type <other declaration param>
+6. <function declaration> -> GLOBAL ID : FUNCTION ( <declaration params> ) <output>
+7. <declaration params> -> e
+8. <declaration params> -> type <other declaration param>
+9. <other declaration param> -> e
+10. <other declaration param> -> , type <other declaration param>
 
-10.<function definition> -> FUNCTION ID ( <definition params> ) <output> <statement list> END
-11-12.<definition params> -> e | <param> <other definition param>
-13-14.<other definition param> -> e | , <param> <other definition param>
-15.<param> -> ID : type
+11. <function definition> -> FUNCTION ID ( <definition params> ) <output> <statement list> END
+12. <definition params> -> e
+13. <definition params> -> <param> <other definition param>
+14. <other definition param> -> e
+15. <other definition param> -> , <param> <other definition param>
+16. <param> -> ID : type
 
-16.<output> -> type <other output type>
-17-18.<other output type> -> e | , type <other output type>
+17. <output> -> type <other output type>
+18. <other output type> -> e
+19. <other output type> -> , type <other output type>
 
 -------
 
-19.<statement list> -> e | <statement> <statement list>
+20. <statement list> -> e
+21. <statement list> -> <statement> <statement list>
 
-20.<statement> -> WRITE (<write argument list>)
-21.<write argument list> -> <expression> <other write argument>
-22-23.<other write argument> -> e | , <expression> <other write argument>
+22. <statement> -> WRITE (<write argument list>)
+23. <write argument list> -> <expression> <other write argument>
+24. <other write argument> -> e
+25. <other write argument> -> , <expression> <other write argument>
 
-24.<statement> -> <ID list> <assignment values>
-25.<ID list> -> ID <other ID>
-26-27.<other ID> -> e | , ID <other ID>
-28.<assignment values> -> <assignment value> <other assignment value>
-29-30.<other assignment value> -> e | , <assignment value> <other assignment value>
-31-32.<assignment value> -> ID(<function call params>) | <expression>
+26. <statement> -> <ID list> <assignment values>
+27. <ID list> -> ID <other ID>
+28. <other ID> -> e
+29. <other ID> -> , ID <other ID>
+30. <assignment values> -> <assignment value> <other assignment value>
+31. <other assignment value> -> e
+32. <other assignment value> -> , <assignment value> <other assignment value> 
+33. <assignment value> -> <expression>
+34. <assignment value> -> ID(<function call params>)
 
-33. <function call params> -> <call param> <other call param>
-34-35. <other call param> -> e | , <call param> <other call param>
-36. <call param> -> process
+35. <function call params> -> <call param> <other call param>
+36  <other call param> -> e
+37. <other call param> -> , <call param> <other call param>
+38. <call param> -> <expression>
 
-37. <statement> -> return <value list>
+39. <statement> -> return <return list>
+40. <return list> -> <return value> <other return value>
+41. <other return value> -> e
+42. <other return value> -> , <return value> <other return value>
 
 
 
-TBD
+l,l+TBD

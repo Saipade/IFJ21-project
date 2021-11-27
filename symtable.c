@@ -243,7 +243,7 @@ void st_free ( Sym_table *symTable );
 // for debugging reasons
 void st_print ( Sym_table_itemPtr rootItem ) {
 
-    printf("%s\n", rootItem->key);
+    printf("%s ", rootItem->key);
     if (rootItem->leftItem) st_print( rootItem->leftItem );
     if (rootItem->rightItem) st_print( rootItem->rightItem );
 

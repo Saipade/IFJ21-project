@@ -113,7 +113,7 @@
     "\n"                                                                    \
     "# Function substr\n"                                                   \
     "LABEL $substr\n"                                                       \
-    "PUSHFRAME"                                                             \
+    "PUSHFRAME\n"                                                           \
     "DEFVAR LF@%s\n"                                                        \
     "MOVE LF@%s LF@%0\n"                                                    \
     "DEFVAR LF@%i\n"                                                        \
@@ -152,7 +152,7 @@
     "SUB LF@%i LF@%i int@1\n"                                               \
     "SUB LF@%j LF@%j int@1\n"                                               \
     "LABEL $substr$loop\n"                                                  \
-    "GETCHAR LF@%char LF@%s LF@%i LF@%i\n"                                  \
+    "GETCHAR LF@%char LF@%s LF@%i\n"                                        \
     "CONCAT LF@%retval0 LF@%retval0 LF@%char\n"                             \
     "ADD LF@%i LF@%i int@1\n"                                               \
     "GT LF@%check LF@%i LF@%j\n"                                            \
@@ -251,6 +251,11 @@
     "\n"                                                                    \
     "LABEL $over$chr\n"
 
+// modes for convertion dopisat
+typedef enum {
+    m_exp,
+    m_ret,
+} Res_mode;
 // prints entire result code (for debugging reasons. to delete before commit)
 void print_out (  );
 
@@ -423,12 +428,12 @@ bool cg_convert_both_int2num (  );
 /**
  * @brief Converts expression result to integer
  */
-bool cg_convert_res_num2int (  );
+bool cg_convert_res_num2int ( Res_mode mode );
 
 /**
  * @brief Converts expression result to number
  */
-bool cg_convert_res_int2num (  );
+bool cg_convert_res_int2num ( Res_mode mode );
 
 /**
  * @brief 

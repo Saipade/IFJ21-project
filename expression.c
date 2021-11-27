@@ -367,6 +367,7 @@ int reduce ( Parser_data *parserData ) {
     
     Data_type resType = test_semantic( item1, item2, item3, resRule );
     parserData->expType = resType;
+
     if (res = generate_operation( resRule ));
     // pop out all "consumed" symbols and stop sign
     for (int i = 0; i <= count; i++) s_pop( stack );
