@@ -38,15 +38,15 @@ void cg_output ( FILE *outputFile ) {
 
 
 bool cg_start (  ) {
+
     // prologue
     ADD_LINE( ".IFJcode21" );
-    // define global variables for some operations
+    // declare global variables for operation results
     ADD_LINE( "DEFVAR GF@%tmp0" );
     ADD_LINE( "DEFVAR GF@%tmp1" );
     ADD_LINE( "DEFVAR GF@%tmp2" );
     ADD_LINE( "DEFVAR GF@%expResult" );
-    ADD_LINE( "DEFVAR GF@%return" );
-    // add built-in functions
+    // define built-in functions
     ADD_LINE( FUNCTION_READS );
     ADD_LINE( FUNCTION_READI );
     ADD_LINE( FUNCTION_READN );
@@ -296,7 +296,7 @@ bool cg_process_data_type ( Data_type dataType ) {
 
         case (T_NUM): 
 
-            ADD_CODE( "float@0.0");
+            ADD_CODE( "float@0x0.0p+0");
 
         break;
 
@@ -331,7 +331,6 @@ bool cg_process_data_type ( Data_type dataType ) {
 
 }
 
-// form : for vars - fram@%depth%id, for const - type@val
 bool cg_term ( Token *token, int index ) {
 
     Dynamic_string str;
@@ -500,21 +499,84 @@ bool cg_convert_res_int2num ( Res_mode mode ) {
 
 /* .......................................... IF/WHILE STATEMENT .......................................... */
 
-bool cg_if_header ( int index, int depth ) {
+bool cg_if_header ( int index, char *functionName ) {
 
-    char *strIndex;
-    char *strDepth;
+    char strIndex[2];
 
     sprintf( strIndex, "%d", index );
-    sprintf( strDepth, "%d", depth );
 
-    ADD_CODE( "JUMPIFEQ $");
-    ADD_CODE( "%" );
-    
+    ADD_CODE( "JUMPIFNEQ $" );
+    ADD_CODE( functionName );
+    ADD_CODE( "$" );
+    ADD_CODE( strIndex );
+    ADD_CODE( "$else " );
 
+    ADD_LINE( "GF@%expResult bool@true" );
 
     return true;
     
+}
+
+bool cg_if_else ( int index, char *functionName ) {
+
+    char strIndex[2];
+
+    sprintf( strIndex, "%d", index );
+
+    ADD_CODE( "LABEL $" );
+    ADD_CODE( functionName );
+    ADD_CODE( "$" );
+    ADD_CODE( strIndex );
+    ADD_LINE( "$else" );
+
+    return true;
+    
+}
+
+bool cg_while_header ( int index, char *functionName ) {
+
+    char strIndex[2];
+    sprintf( strIndex, "%d", index );
+    // generate label for loop
+    ADD_CODE( "LABEL $" );
+    ADD_CODE( functionName );
+    ADD_CODE( "$" );
+    ADD_CODE( strIndex );
+    ADD_LINE( "$loop" );
+
+    return true;
+
+}
+
+bool cg_while_condition ( int index, char *functionName ) {
+
+    char strIndex[2];
+    sprintf( strIndex, "%d", index );
+
+    ADD_CODE( "JUMPIFNEQ $");
+    ADD_CODE( functionName );
+    ADD_CODE( "$" );
+    ADD_CODE( strIndex );
+    ADD_LINE( "$loop$end" );
+
+    return true;
+
+}
+
+bool cg_while_end ( int index, char *functionName ) {
+
+    char strIndex[2];
+
+    sprintf( strIndex, "%d", index );
+    // generate label for end of while loop
+    ADD_CODE( "LABEL" );
+    ADD_CODE( "$" );
+    ADD_CODE( functionName );
+    ADD_CODE( "$" );
+    ADD_CODE( strIndex );
+
+    return true;
+
 }
 
 /* .......................................... EXPRESSION .......................................... */

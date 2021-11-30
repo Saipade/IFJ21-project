@@ -22,8 +22,8 @@ int main ( int argc, char *argv[] ) {
 
     _source_file( srcF );
 
-    parse (  );
+    parse(  );
     
-    return 0;
+    exit( 0 );
 
 }

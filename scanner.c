@@ -57,31 +57,31 @@ int _integer_or_number ( Dynamic_string *str, Token *token ) {
  */
 int _keyword_or_id ( Dynamic_string *str, Token *token ) {
 
-    if      (strcmp( str->str, "integer" ) == 0) token->attribute.keyword = KW_INTEGER;
-    else if (strcmp( str->str, "number" ) == 0) token->attribute.keyword = KW_NUMBER;
-    else if (strcmp( str->str, "string" ) == 0) token->attribute.keyword = KW_STRING;
-    //else if (strcmp( str->str, "boolean" ) == 0) token->attribute.keyword = KW_BOOLEAN;
-    else if (strcmp( str->str, "nil" ) == 0) token->attribute.keyword = KW_NIL;
-    else if (strcmp( str->str, "do" ) == 0) token->attribute.keyword = KW_DO;
-    else if (strcmp( str->str, "else" ) == 0) token->attribute.keyword = KW_ELSE;
-    else if (strcmp( str->str, "end" ) == 0) token->attribute.keyword = KW_END;
-    else if (strcmp( str->str, "function" ) == 0) token->attribute.keyword = KW_FUNCTION;
-    else if (strcmp( str->str, "global" ) == 0) token->attribute.keyword = KW_GLOBAL;
-    else if (strcmp( str->str, "if" ) == 0) token->attribute.keyword = KW_IF;
-    else if (strcmp( str->str, "local" ) == 0) token->attribute.keyword = KW_LOCAL;
-    else if (strcmp( str->str, "require" ) == 0) token->attribute.keyword = KW_REQUIRE;
-    else if (strcmp( str->str, "return" ) == 0) token->attribute.keyword = KW_RETURN;
-    else if (strcmp( str->str, "then" ) == 0) token->attribute.keyword = KW_THEN;
-    else if (strcmp( str->str, "while" ) == 0) token->attribute.keyword = KW_WHILE;
-
-    else if (strcmp( str->str, "reads" ) == 0) token->attribute.keyword = KW_READS;
-    else if (strcmp( str->str, "raedi" ) == 0) token->attribute.keyword = KW_READI;
-    else if (strcmp( str->str, "readn" ) == 0) token->attribute.keyword = KW_READN;
-    else if (strcmp( str->str, "write" ) == 0) token->attribute.keyword = KW_WRITE;
-    else if (strcmp( str->str, "tointeger" ) == 0) token->attribute.keyword = KW_TOINTEGER;
-    else if (strcmp( str->str, "substr" ) == 0) token->attribute.keyword = KW_SUBSTR;
-    else if (strcmp( str->str, "ord" ) == 0) token->attribute.keyword = KW_ORD;
-    else if (strcmp( str->str, "chr" ) == 0) token->attribute.keyword = KW_CHR;
+    if      (!strcmp( str->str, "integer" )) token->attribute.keyword = KW_INTEGER;
+    else if (!strcmp( str->str, "number" )) token->attribute.keyword = KW_NUMBER;
+    else if (!strcmp( str->str, "string" )) token->attribute.keyword = KW_STRING;
+    //else if (!strcmp( str->str, "boolean" )) token->attribute.keyword = KW_BOOLEAN;
+    else if (!strcmp( str->str, "nil" )) token->attribute.keyword = KW_NIL;
+    else if (!strcmp( str->str, "do" )) token->attribute.keyword = KW_DO;
+    else if (!strcmp( str->str, "else" )) token->attribute.keyword = KW_ELSE;
+    else if (!strcmp( str->str, "end" )) token->attribute.keyword = KW_END;
+    else if (!strcmp( str->str, "function" )) token->attribute.keyword = KW_FUNCTION;
+    else if (!strcmp( str->str, "global" )) token->attribute.keyword = KW_GLOBAL;
+    else if (!strcmp( str->str, "if" )) token->attribute.keyword = KW_IF;
+    else if (!strcmp( str->str, "local" )) token->attribute.keyword = KW_LOCAL;
+    else if (!strcmp( str->str, "require" )) token->attribute.keyword = KW_REQUIRE;
+    else if (!strcmp( str->str, "return" )) token->attribute.keyword = KW_RETURN;
+    else if (!strcmp( str->str, "then" )) token->attribute.keyword = KW_THEN;
+    else if (!strcmp( str->str, "while" )) token->attribute.keyword = KW_WHILE;
+    // built-in functions
+    else if (!strcmp( str->str, "reads" )) token->attribute.keyword = KW_READS;
+    else if (!strcmp( str->str, "readi" )) token->attribute.keyword = KW_READI;
+    else if (!strcmp( str->str, "readn" )) token->attribute.keyword = KW_READN;
+    else if (!strcmp( str->str, "write" )) token->attribute.keyword = KW_WRITE;
+    else if (!strcmp( str->str, "tointeger" )) token->attribute.keyword = KW_TOINTEGER;
+    else if (!strcmp( str->str, "substr" )) token->attribute.keyword = KW_SUBSTR;
+    else if (!strcmp( str->str, "ord" )) token->attribute.keyword = KW_ORD;
+    else if (!strcmp( str->str, "chr" )) token->attribute.keyword = KW_CHR;
     
     else token->type = T_IDE;
 
@@ -98,6 +98,7 @@ int _keyword_or_id ( Dynamic_string *str, Token *token ) {
     }
     
     else {
+
         if (token->attribute.keyword == KW_NIL) token->type = T_NIL;
         else token->type = T_KEY;
         ds_free( str );
@@ -136,7 +137,7 @@ int get_next_token ( Token *token ) {
     while (true) {
 
         c = getc( srcF );
-
+        
         switch (scannerState) {
 
             case (SCANNER_STATE_START):
@@ -310,7 +311,7 @@ int get_next_token ( Token *token ) {
 
             case (SCANNER_STATE_DOUBLE):
 
-                if(c >= '0' && c <= '9') {
+                if (c >= '0' && c <= '9') {
                     if (!ds_add_char( scannerString, c )) {
                         ds_free( scannerString );
                         return ERR_INTERNAL;
@@ -394,12 +395,13 @@ int get_next_token ( Token *token ) {
 
             // IDENTIFIER OR KEYWORD PROCESSING
             case (SCANNER_STATE_ID):
-
+            
                 if (c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c > '0' && c < '9')) {
                     if (!ds_add_char( scannerString, c )) {
                         ds_free( scannerString );
                         return ERR_INTERNAL;
                     }
+                    
                 } 
 
                 else {

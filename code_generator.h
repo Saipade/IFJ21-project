@@ -436,9 +436,31 @@ bool cg_convert_res_num2int ( Res_mode mode );
 bool cg_convert_res_int2num ( Res_mode mode );
 
 /**
- * @brief 
+ * @brief Generates code for conditional jump to else LABEL
+ * @param index current "if index"
+ * @param functionId function we are currently in name
+ * @return Error
  */
-bool cg_if_header ( int index, int depth );
+bool cg_if_header ( int index, char *functionId );
+
+/**
+ * @brief Generates code for else LABEL
+ * @param index current "if index"
+ * @param functionId function we are currently in name
+ * @return Error
+ */
+bool cg_if_else ( int index, char *functionId );
+
+
+/**
+ * 
+ */
+bool cg_while_header ( int index, char *functionId );
+
+/**
+ * 
+ */
+bool cg_while_end ( int index, char *functionId );
 
 /**
  * 

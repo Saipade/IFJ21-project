@@ -25,11 +25,11 @@ typedef struct {
 // String processing
 
 /** 
- * Initialization of dynamic string
- * @param cStr pointer to current dynamic string
+ * Initializes dynamic string
+ * @param str pointer to current dynamic string
  * @return
  */
-bool ds_init ( Dynamic_string *cStr );
+bool ds_init ( Dynamic_string *str );
 
 /** 
  * Adds character to the end of dynamic string
@@ -37,7 +37,7 @@ bool ds_init ( Dynamic_string *cStr );
  * @param c character that will be added
  * @return
  */
-bool ds_add_char ( Dynamic_string *str, char s );
+bool ds_add_char ( Dynamic_string *str, char c );
 
 /** 
  * Copies string from one dynamic string to another 
@@ -56,7 +56,7 @@ bool ds_copy ( Dynamic_string *src, Dynamic_string *dst );
 bool ds_add_chars ( Dynamic_string *dynamicStr, char *str);
 
 /** 
- * Frees alocated memory of dynamic string
+ * Frees allocated memory of dynamic string
  * @param cStr pointer to current dynamic string
  * @return
  */

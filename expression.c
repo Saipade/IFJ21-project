@@ -111,7 +111,6 @@ int convert_token_2_type( Parser_data *parserData ) {
 
     Item_data *data;
     Item_data *tmp = parserData->currentVar;
-
     switch (parserData->token.type) {
 
         case (T_INT):
@@ -164,7 +163,7 @@ pt_index get_pt_index ( pt_symbol symbol ) {
         case MET:
         case EQU:
         case NEQ:
-            
+
         return I_CMP;
 
         case LBR:
@@ -215,7 +214,6 @@ int rule_expression ( Parser_data *parserData ) {
     Data_type nextType;
     pt_operation currentOperation;
     bool success = false;
-    //printf("\n");
     
     while (!success) {
 
@@ -223,7 +221,7 @@ int rule_expression ( Parser_data *parserData ) {
         nextSymbol = convert_token_2_symbol( parserData );
         nextType = convert_token_2_type( parserData );
         currentOperation = precedenceTable[get_pt_index(firstTerminalSymbol)][get_pt_index(nextSymbol)];
-        //printf("%d = %d x %d |", currentOperation, get_pt_index(firstTerminalSymbol), get_pt_index(nextSymbol));
+        //printf("%d = %d x %d |\n", currentOperation, get_pt_index(firstTerminalSymbol), get_pt_index(nextSymbol));
         switch (currentOperation) {
             // Shift
             case S:
@@ -247,7 +245,7 @@ int rule_expression ( Parser_data *parserData ) {
             break;
             // Blank space
             case B:
-
+                
                 while (s_top_terminal_symbol( stack ) != DOL) {
                     if (res = reduce( parserData )) exit( res );
                 }
@@ -263,9 +261,9 @@ int rule_expression ( Parser_data *parserData ) {
         }
 
     }
-    
-    if (res = save_result( parserData, stack ));
 
+    if (res = save_result( parserData, stack ));
+    
     s_dispose( stack );
 
     return 0;
@@ -286,7 +284,7 @@ int shift ( Parser_data *parserData, Stack *stack, Data_type type, pt_symbol sym
     s_push_before_terminal( stack, T_NDA, STOP );
     s_push( stack, type, symbol );
     if (IS_I( symbol )) {
-
+        // find the depth of current variable
         int index = 0;
         if (parserData->token.type == T_IDE) {
             SEARCH_ALL_LOCAL( parserData->token.attribute.string->str );
@@ -659,6 +657,7 @@ int generate_operation ( pt_rule ruleName ) {
 int save_result ( Parser_data *parserData, Stack *stack ) {
 
     cg_save_result(  );
+    
     // if there is variable on the left side, send expression result to it
     if (!parserData->lhsId) return 0;
 

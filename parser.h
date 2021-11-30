@@ -30,6 +30,40 @@
     || TOKEN.attribute.keyword == KW_ORD                                                                            \
     || TOKEN.attribute.keyword == KW_CHR)                                                                           \
 
+
+#define SEARCH_BUILTIN(TOKEN)                                                                                       \
+    do {                                                                                                            \
+        switch (TOKEN.attribute.keyword) {                                                                          \
+            case (KW_READI):                                                                                        \
+                SEARCH_GLOBAL( "readi" );                                                                           \
+            break;                                                                                                  \
+            case (KW_READN):                                                                                        \
+                SEARCH_GLOBAL( "readn" );                                                                           \
+            break;                                                                                                  \
+            case (KW_READS):                                                                                        \
+                SEARCH_GLOBAL( "reads" );                                                                           \
+            break;                                                                                                  \
+            case (KW_WRITE):                                                                                        \
+                exit( ERR_SEMANTIC_INCOP_TYPE );                                                                    \
+            break;                                                                                                  \
+            case (KW_TOINTEGER):                                                                                    \
+                SEARCH_GLOBAL( "tointeger" );                                                                       \
+            break;                                                                                                  \
+            case (KW_SUBSTR):                                                                                       \
+                SEARCH_GLOBAL( "substr" );                                                                          \
+            break;                                                                                                  \
+            case (KW_ORD):                                                                                          \
+                SEARCH_GLOBAL( "ord" );                                                                             \
+            break;                                                                                                  \
+            case (KW_CHR):                                                                                          \
+                SEARCH_GLOBAL( "chr" );                                                                             \
+            break;                                                                                                  \
+            default:                                                                                                \
+                exit( ERR_SEMANTIC_UNDEF_VAR );                                                                     \
+            break;                                                                                                  \
+        }                                                                                                           \
+    } while(0)
+
 // id queue element
 typedef struct QElem {
 
@@ -50,9 +84,10 @@ typedef struct {
 
     Token token;                // token got by get_next_token func
     Queue queue;                // queue structure for multiple assignment
-    Sym_table symTable[20];     // array of symbol tables
-    Item_data *lhsId;           // left-hand  side func/var identifier
-    Item_data *rhsId;           // right-hand side func/var identifier
+    Sym_table_itemPtr *currentSymTable;
+    Sym_table_itemPtr *globalSymTable; 
+    SymTable_Stack STStack;     // symbol table stack
+    Item_data *lhsId;           // left-hand side 
     Item_data *currentVar;      // pointer to current variable
     Item_data *currentFunc;     // pointer to current function
     Item_data *insideFunc;      // pointer on function that parser currently in
@@ -60,9 +95,10 @@ typedef struct {
 
     bool inLoop;                // if parser is in if-statement/while cycle
 
-    int loopCount;              // number of if-while
+    int inIforLoop;
+    int ifIndex;                // number of if lables
+    int whileIndex;             // number of while lables
     int currentDepth;           // depth for local symtables
-    int whereAmI;               // function declaration or function definition
     int paramIndex;             // index of function parameter/retval
 
 } Parser_data;
@@ -89,7 +125,7 @@ Item_data *q_pop ( Queue *queue );
 void q_init ( Queue *queue );
 
 /**
- * @brief Destroy the queue
+ * @brief Destroys the queue
  * @param queue identifier queue
  */
 void q_dispose ( Queue *queue );
@@ -104,7 +140,7 @@ void q_dispose ( Queue *queue );
 Data_type get_param_or_retval_type ( Item_data *function, bool mode, int pos );
 
 /**
- * @brief Auxiliary function, type keyword to character
+ * @brief Auxiliary function, converts type keyword to character
  * @param dataType given keyword
  * @return Character representing type
  */

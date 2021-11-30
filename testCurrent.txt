@@ -1,8 +1,20 @@
 require "ifj21"
 
 function main()
-	local a : integer = 2*5
-	write (a)
+	local a : integer = 10
+	local b : integer = 20
+	local g : integer
+	if (a-12 > 20+42) then
+		write (a, "\n")
+	else
+		write (b)
+	end
 end
 
 main()
+
+function notmain()
+
+	local b : string = "string"
+	
+end
