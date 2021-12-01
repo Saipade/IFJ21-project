@@ -189,4 +189,10 @@ Sym_table_itemPtr *sts_push ( SymTable_Stack *stack, int depth);
  */
 void sts_pop ( SymTable_Stack *stack );
 
+/**
+ * @brief Disposes entire symbol table stack
+ * @param stack Symbol table stack
+ */
+void sts_dispose ( SymTable_Stack *stack );
+
 #endif

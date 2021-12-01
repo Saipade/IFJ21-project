@@ -182,6 +182,7 @@ void st_dispose ( Sym_table_itemPtr *symTable ) {
     ds_free( (*symTable)->data.outputTypes );
     free( (*symTable)->data.outputTypes );
     free( (*symTable)->key );
+    free( (*symTable)->data.id );
     free( (*symTable) );
 
     (*symTable)->data.inputTypes->str = NULL;
@@ -189,6 +190,7 @@ void st_dispose ( Sym_table_itemPtr *symTable ) {
     (*symTable)->data.outputTypes->str = NULL;
     (*symTable)->data.outputTypes = NULL;
     (*symTable)->key = NULL;
+    (*symTable)->data.id = NULL;
     (*symTable) = NULL;
     
 }
@@ -236,15 +238,25 @@ void sts_pop ( SymTable_Stack *stack ) {
 
     if (stack->top) {
 
-        st_dispose( stack->top->symTable );
-        free( stack->top->symTable );
-        stack->top->symTable = NULL;
-
         SymTable_Stack_item *toPop = stack->top;
         stack->top = stack->top->nextItem;
 
+        st_dispose( toPop->symTable );
+        free( toPop->symTable );
+        toPop->symTable = NULL;
+
         free( toPop );
         stack->top = NULL;
+
+    }
+
+}
+
+void sts_dispose ( SymTable_Stack *stack ) {
+
+    while (stack->top) {
+
+        sts_pop( stack );
 
     }
 

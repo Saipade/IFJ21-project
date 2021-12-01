@@ -18,7 +18,7 @@
 13. <definition params> -> <param> <other definition param>
 14. <other definition param> -> e
 15. <other definition param> -> , <param> <other definition param>
-16. <param> -> ID : type
+16. <definition param> -> ID : type
 
 17. <output> -> type <other output type>
 18. <other output type> -> e

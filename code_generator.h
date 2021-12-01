@@ -451,6 +451,14 @@ bool cg_if_header ( int index, char *functionId );
  */
 bool cg_if_else ( int index, char *functionId );
 
+/**
+ * @brief Generates code for end LABEL
+ * @param index current "if index"
+ * @param functionId function we are currently in
+ * @return Error
+ */
+bool cg_if_end ( int index, char *functionId );
+
 
 /**
  * 

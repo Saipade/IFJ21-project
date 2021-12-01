@@ -143,7 +143,7 @@ int get_next_token ( Token *token ) {
             case (SCANNER_STATE_START):
                 
                 if (c == ' ' || c == '\n' || c == '\t' || c == 13) {
-                    if (c == '\n' || c == 13) {
+                    if (c == '\n') {
                        printf("\n"); // for debugging resasons, delete before commiting
                     }
 
@@ -231,6 +231,7 @@ int get_next_token ( Token *token ) {
                 else if (c == '#') { 
                     ds_free( scannerString );
                     token->type = T_LEN;
+                    return SCAN_OK;
                 }
 
                 else if (c == '.') {
@@ -603,7 +604,7 @@ int get_next_token ( Token *token ) {
             case (SCANNER_STATE_STRING):
 
                 if (c >= 32) {
-
+                    // space
                     if (c == 32) {
                         char *tmpStr = "\\032";
                         if (!ds_add_chars( scannerString, tmpStr )) {
@@ -612,7 +613,7 @@ int get_next_token ( Token *token ) {
                         }
                         scannerState = SCANNER_STATE_STRING;
                     }
-
+                    // end of string
                     else if (c == '"') {
                         if (!ds_copy( scannerString, token->attribute.string )) {
                             ds_free( scannerString );
@@ -622,7 +623,7 @@ int get_next_token ( Token *token ) {
                         ds_free( scannerString ); 
                         return SCAN_OK;
                     }
-
+                    // escape sequence
                     else if (c == '\\') {
                         scannerState = SCANNER_STATE_ESC_SEQ;
                     }
@@ -644,7 +645,7 @@ int get_next_token ( Token *token ) {
             case (SCANNER_STATE_ESC_SEQ):
 
                 if (c >= 32) {
-
+                    // " symbol
                     if (c == '"') {
                         char *tmpStr = "\\034";
                         if (!ds_add_chars( scannerString, tmpStr )) {
@@ -653,7 +654,7 @@ int get_next_token ( Token *token ) {
                         }
                         scannerState = SCANNER_STATE_STRING;
                     }
-
+                    // new line
                     else if (c == 'n') {
                         char *tmpStr = "\\010";
                         if (!ds_add_chars( scannerString, tmpStr )) {

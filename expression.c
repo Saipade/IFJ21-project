@@ -17,16 +17,16 @@
 
 // symbol on top has higher priority than next symbol -> shift
 // symbol on top has lower or same priority compared to the next symbol -> reduce
-// S - shift; R - reduce; E - equal; B - blank (not defined rule or SUCCES ($ - $))
+// S - shift; R - reduce; E - equal; B - blank (not defined rule or SUCCESS ($ - $))
 pt_operation precedenceTable[9][9] = {
 //input|+- |*/ |rel| ( | ) | i | # |.. | $    // top of stack
 	   { R , S , R , S , R , S , S , R , R }, // +-
-	   { R , R , R , S , R , S , S , R , R }, // * / //
+	   { R , R , R , S , R , S , S , R , R }, // * a / a //
 	   { S , S , B , S , R , S , S , S , R }, // rel
 	   { S , S , S , S , E , S , S , S , B }, // (
 	   { R , R , R , B , R , B , R , R , R }, // )
 	   { R , R , R , B , R , B , R , R , R }, // i
-       { R , R , R , S , R , S , S , R , R }, // # // (.. x #) = ????
+       { R , R , R , S , R , S , S , R , R }, // # 
        { S , S , R , S , R , S , S , S , R }, // ..
 	   { S , S , S , S , B , S , S , S , B }, // $
 };
@@ -37,7 +37,7 @@ pt_rule check_rule ( int count, Stack_item *item1, Stack_item *item2, Stack_item
 Data_type test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_rule rule );
 pt_symbol convert_token_2_symbol ( Parser_data *parserData );
 pt_symbol convert_id_2_symbol ( Parser_data *parserData );
-int convert_token_2_type( Parser_data *parserData );
+Data_type convert_token_2_type( Parser_data *parserData );
 pt_index get_pt_index ( pt_symbol symbol );
 int generate_operation ( pt_rule ruleName );
 int save_result ( Parser_data *parserData, Stack *stack );
@@ -105,7 +105,7 @@ pt_symbol convert_id_2_symbol ( Parser_data *parserData ) {
  * @param parserData contains token information
  * @return data type
  */
-int convert_token_2_type( Parser_data *parserData ) {
+Data_type convert_token_2_type( Parser_data *parserData ) {
 
     int res = 0;
 
@@ -292,7 +292,6 @@ int shift ( Parser_data *parserData, Stack *stack, Data_type type, pt_symbol sym
             res = 0;
         }
         
-        
         index = parserData->currentVar->depth;
         cg_push( &parserData->token, index );
 
@@ -347,7 +346,7 @@ int reduce ( Parser_data *parserData ) {
         resRule = check_rule( count, item1, item2, item3 );
     }
 
-    else if (count == 2) {
+    else if (count == 2) {;
         item1 = stack->top;
         item2 = stack->top->nextItem;
         item3 = NULL;
@@ -362,7 +361,7 @@ int reduce ( Parser_data *parserData ) {
     }
 
     if (resRule == ND_RULE) exit( ERR_SYNTAX );
-    
+
     Data_type resType = test_semantic( item1, item2, item3, resRule );
     parserData->expType = resType;
 
@@ -398,7 +397,7 @@ pt_rule check_rule ( int count, Stack_item *item1, Stack_item *item2, Stack_item
 
         case 2:
             // E -> #E
-            if (item1->symbol == LEN && item2->symbol == NONTERM) {
+            if (item1->symbol == NONTERM && item2->symbol == LEN) {
                 return LEN_E;
             }
 
@@ -468,11 +467,11 @@ Data_type test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item
         return item1->type;
 
         case LEN_E:
-
-            if (item2->type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
-            if (item2->type == T_NIL) exit( ERR_NIL );
-            if (item2->type != T_STR && item2->type != T_IDE) exit( ERR_SEMANTIC_INCOP_EXP );
         
+            if (item1->type == T_NDA) exit( ERR_SEMANTIC_UNDEF_VAR );
+            if (item1->type == T_NIL) exit( ERR_NIL );
+            if (item1->type != T_STR ) exit( ERR_SEMANTIC_INCOP_EXP );
+
         return INT;
 
         case E_PLUS_E:
@@ -597,7 +596,7 @@ Data_type test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item
  * @return error code
  */
 int generate_operation ( pt_rule ruleName ) {
-
+    
     int res = 0;
 
     switch (ruleName) {
@@ -656,10 +655,13 @@ int generate_operation ( pt_rule ruleName ) {
  */
 int save_result ( Parser_data *parserData, Stack *stack ) {
 
-    cg_save_result(  );
     
-    // if there is variable on the left side, send expression result to it
-    if (!parserData->lhsId) return 0;
+    
+    // if there is ho variable to assign to -> return
+    if (!parserData->lhsId) {
+        cg_save_result(  );
+        return 0;
+    } 
 
     int res = 0;
     pt_symbol resultType = s_top_type( stack );
@@ -668,22 +670,25 @@ int save_result ( Parser_data *parserData, Stack *stack ) {
     switch (resultType) {
 
         case (INT) :
-
-            if (parserData->lhsId->type == NUM) {
-                cg_convert_1st_int2num(  );
-            }            
             
-            cg_save_to( parserData );
+            if (parserData->lhsId->type == INT || parserData->lhsId->type == NUM) {
+                if (parserData->lhsId->type == NUM) {
+                    cg_convert_1st_int2num(  );
+                }            
+                
+                cg_save_to( parserData );
+
+            } else exit( ERR_SEMANTIC_INCOP_TYPE );
             
         break;
 
         case (T_NUM):
+        
+            if (parserData->lhsId->type == NUM) {
 
-            if (parserData->lhsId->type == INT) {
-                cg_convert_1st_num2int(  );
-            }
+                cg_save_to( parserData );
 
-            cg_save_to( parserData );
+            } else exit( ERR_SEMANTIC_INCOP_TYPE );
 
         break;
 
@@ -698,6 +703,12 @@ int save_result ( Parser_data *parserData, Stack *stack ) {
         case (T_BOO):
 
             if (parserData->lhsId->type != T_BOO) exit( ERR_SEMANTIC_INCOP_TYPE );
+
+            cg_save_to( parserData );
+
+        break;
+        
+        case (T_NIL):
 
             cg_save_to( parserData );
 

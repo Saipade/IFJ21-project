@@ -509,7 +509,7 @@ bool cg_if_header ( int index, char *functionName ) {
     ADD_CODE( functionName );
     ADD_CODE( "$" );
     ADD_CODE( strIndex );
-    ADD_CODE( "$else " );
+    ADD_CODE( "$if$else " );
 
     ADD_LINE( "GF@%expResult bool@true" );
 
@@ -523,14 +523,36 @@ bool cg_if_else ( int index, char *functionName ) {
 
     sprintf( strIndex, "%d", index );
 
+    ADD_CODE( "JUMP $" );
+    ADD_CODE( functionName );
+    ADD_CODE( "$" );
+    ADD_CODE( strIndex );
+    ADD_LINE( "$if$end" );
+
     ADD_CODE( "LABEL $" );
     ADD_CODE( functionName );
     ADD_CODE( "$" );
     ADD_CODE( strIndex );
-    ADD_LINE( "$else" );
+    ADD_LINE( "$if$else" );
 
     return true;
     
+}
+
+bool cg_if_end ( int index, char *functionName ) {
+
+    char strIndex[2];
+
+    sprintf( strIndex, "%d", index );
+
+    ADD_CODE( "LABEL $" );
+    ADD_CODE( functionName );
+    ADD_CODE( "$" );
+    ADD_CODE( strIndex );
+    ADD_LINE( "$if$end" );
+
+    return true;
+
 }
 
 bool cg_while_header ( int index, char *functionName ) {
@@ -593,12 +615,11 @@ bool cg_save_to ( Parser_data *parserData ) {
 
     char strDepth[2];
     sprintf( strDepth, "%d", parserData->currentDepth );
-    ADD_CODE( "MOVE " );
+    ADD_CODE( "POPS " );
     ADD_CODE( "LF@%" );
     ADD_CODE( strDepth );
     ADD_CODE( "%" );
-    ADD_CODE( parserData->lhsId->id );
-    ADD_LINE( " GF@%expResult");
+    ADD_LINE( parserData->lhsId->id );
 
     return true;
 
