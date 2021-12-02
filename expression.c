@@ -2,15 +2,16 @@
  * PROJECT: Implementation of imperative IFJ21 programming language compiler
  * PART: Expression processing
  * 
- * AUTHOR(S): Sadovskyi Dmytro (xsadov06)
+ * AUTHOR(S): Maksim Tikhonov (xtikho00)
+ *            Sadovskyi Dmytro (xsadov06)
  *            Galliamov Eduard (xgalli01)
  */
 
 #include "errorslist.h"
 #include "scanner.h"
 #include "expression.h"
-#include "stack.h"
 #include "code_generator.h"
+#include "stack.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -31,26 +32,17 @@ pt_operation precedenceTable[9][9] = {
 	   { S , S , S , S , B , S , S , S , B }, // $
 };
 
+Stack st;
+Stack *stack = &st;
+
 int shift ( Parser_data *parserData, Stack *stack, Data_type type, pt_symbol symbol );
 int reduce ( Parser_data *parserData );
 pt_rule check_rule ( int count, Stack_item *item1, Stack_item *item2, Stack_item *item3 );
 Data_type test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_rule rule );
-pt_symbol convert_token_2_symbol ( Parser_data *parserData );
-pt_symbol convert_id_2_symbol ( Parser_data *parserData );
-Data_type convert_token_2_type( Parser_data *parserData );
-pt_index get_pt_index ( pt_symbol symbol );
-int generate_operation ( pt_rule ruleName );
+
 int save_result ( Parser_data *parserData, Stack *stack );
 
-Stack st;
-Stack *stack = &st;
-
-/**
- * @brief Auxiliary function, converts token to symbol
- * @param parserData contains token information
- * @return symbol
- */
-pt_symbol convert_token_2_symbol ( Parser_data *parserData ) {
+pt_symbol convert_token2symbol ( Parser_data *parserData ) {
     
     if (parserData->token.type == T_KEY || parserData->token.type >= DOL) {
 
@@ -66,46 +58,7 @@ pt_symbol convert_token_2_symbol ( Parser_data *parserData ) {
 
 }
 
-/**
- * @brief Auxiliary function, converts symbol table item to symbol
- * @param parserData contains item information
- * @return symbol
- */
-pt_symbol convert_id_2_symbol ( Parser_data *parserData ) {
-
-    int res;
-    Item_data *data;
-    Item_data *tmp = parserData->currentVar;
-    SEARCH_ALL_LOCAL( parserData->token.attribute.string->str );
-    if (res == 0) exit( ERR_SEMANTIC_UNDEF_VAR );
-    data = parserData->currentVar;
-    parserData->currentVar = tmp;
-
-    switch (data->type) {
-
-        case (T_INT):
-            return INT;
-        case (T_NUM):
-            return NUM;
-        case (T_STR):
-            return STR;
-        case (T_BOO):
-            return BOO;
-        case (T_NIL):
-            return NIL;
-        default:
-            return NDA;
-
-    }
-
-}
-
-/**
- * @brief Auxiliary function, converts token to data type
- * @param parserData contains token information
- * @return data type
- */
-Data_type convert_token_2_type( Parser_data *parserData ) {
+Data_type convert_token2type( Parser_data *parserData ) {
 
     int res = 0;
 
@@ -124,6 +77,8 @@ Data_type convert_token_2_type( Parser_data *parserData ) {
         case (T_NIL):
             return T_NIL;
         case (T_IDE):
+            SEARCH_GLOBAL( parserData->token.attribute.string->str );
+            if (res == 1) return T_KEY;
             SEARCH_ALL_LOCAL( parserData->token.attribute.string->str );
             if (res == 0) exit( ERR_SEMANTIC_UNDEF_VAR );
             data = parserData->currentVar;
@@ -136,12 +91,6 @@ Data_type convert_token_2_type( Parser_data *parserData ) {
 
 }
 
-
-/**
- * @brief Auxiliary function, converts given symbol to precedence table index
- * @param symbol symbol
- * @return precedence table index
- */
 pt_index get_pt_index ( pt_symbol symbol ) {
 
     switch (symbol) {
@@ -197,11 +146,6 @@ pt_index get_pt_index ( pt_symbol symbol ) {
     }
 }
 
-/**
- * @brief Applies <expression> rule
- * @param parserData contains all required information
- * @return error code
- */
 int rule_expression ( Parser_data *parserData ) {
     
     int res = 0;
@@ -218,8 +162,8 @@ int rule_expression ( Parser_data *parserData ) {
     while (!success) {
 
         if (stack->top) firstTerminalSymbol = s_top_terminal_symbol( stack );
-        nextSymbol = convert_token_2_symbol( parserData );
-        nextType = convert_token_2_type( parserData );
+        nextSymbol = convert_token2symbol( parserData );
+        nextType = convert_token2type( parserData );
         currentOperation = precedenceTable[get_pt_index(firstTerminalSymbol)][get_pt_index(nextSymbol)];
         //printf("%d = %d x %d |\n", currentOperation, get_pt_index(firstTerminalSymbol), get_pt_index(nextSymbol));
         switch (currentOperation) {
@@ -269,13 +213,14 @@ int rule_expression ( Parser_data *parserData ) {
     return 0;
 
 }
+
 /**
  * @brief Precedence table operation, shift
  * @param parserData contains token information
  * @param stack stack for data to be pushed in
  * @param type type to be pushed
  * @param symbol symbol to be pushed
- * @return error code
+ * @return Error code
  */
 int shift ( Parser_data *parserData, Stack *stack, Data_type type, pt_symbol symbol ) {
 
@@ -300,10 +245,11 @@ int shift ( Parser_data *parserData, Stack *stack, Data_type type, pt_symbol sym
     return 0;
     
 }
+
 /**
- * @brief Precedence table operation, reduce
- * @param parserData contains 
- * 
+ * @brief Precedence table operation, identifies relevant reduction rule for up to 3 top symbol stack items
+ * @param parserData contains required information
+ * @return Error code
  */
 int reduce ( Parser_data *parserData ) {
 
@@ -376,12 +322,12 @@ int reduce ( Parser_data *parserData ) {
 }
 
 /**
- * @brief Function checks if there is relevant rule for given items
+ * @brief Auxiliary function, identifies if there is relevant rule for up to 3 top symbols
  * @param count number of stack items before STOP sign 
  * @param item1 top item
  * @param item2 next after top 
  * @param item3 next after top after top
- * @return relevant rule
+ * @return Relevant rule
  */
 pt_rule check_rule ( int count, Stack_item *item1, Stack_item *item2, Stack_item *item3 ) {
 
@@ -448,13 +394,14 @@ pt_rule check_rule ( int count, Stack_item *item1, Stack_item *item2, Stack_item
     }           
 
 }
+
 /**
- * @brief Tests if semantics is correct (type compatibility)
+ * @brief Tests if expression semantics are correct (type compatibility) and returns expression result data type
  * @param item1 top item
  * @param item2 next after top 
  * @param item3 next after top after top
  * @param rule acquired rule
- * @return data type for entire expression
+ * @return Data type for entire expression
  */
 Data_type test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item3, pt_rule rule ) {
 
@@ -590,65 +537,9 @@ Data_type test_semantic ( Stack_item *item1, Stack_item *item2, Stack_item *item
     }
 
 }
-/**
- * @brief Generates operation according to rule
- * @param ruleName given rule
- * @return error code
- */
-int generate_operation ( pt_rule ruleName ) {
-    
-    int res = 0;
-
-    switch (ruleName) {
-
-        case (LEN_E):
-            cg_lens(  );
-        break;
-        case (E_PLUS_E):
-            cg_adds(  );
-        break;
-        case (E_MINUS_E):
-            cg_subs(  );
-        break;
-        case (E_MUL_E):
-            cg_muls(  );
-        break;
-        case (E_DIV_E):
-            cg_divs(  );
-        break;
-        case (E_IDIV_E):
-            cg_idivs(  );
-        break;
-        case (E_CAT_E):
-            cg_cats(  );
-        break;
-        case (E_LTH_E):
-            cg_lths(  );
-        break;
-        case (E_LET_E):
-            cg_lets(  );
-        break;
-        case (E_MTH_E):
-            cg_mths(  );
-        break;
-        case (E_MET_E):
-            cg_mets(  );
-        break;
-        case (E_EQU_E):
-            cg_equs(  );
-        break;
-        case (E_NEQ_E):
-            cg_neqs(  );
-        break;
-
-    }
-
-    return 0;
-
-}
 
 /**
- * @brief Saves expression result to left-hand side identifier
+ * @brief Saves expression result to left-hand side identifier (or to expResult global variable if there is no lhs id)
  * @param parserData contains required information
  * @param stack stack for symbols
  * @return Error code

@@ -468,6 +468,11 @@ bool cg_while_header ( int index, char *functionId );
 /**
  * 
  */
+bool cg_while_condition ( int index, char *functionId );
+
+/**
+ * 
+ */
 bool cg_while_end ( int index, char *functionId );
 
 /**
@@ -550,5 +555,12 @@ bool cg_equs (  );
  * @brief Generates code for stack version of "not" EQ
  */
 bool cg_neqs (  );
+
+/**
+ * @brief Generates operation according to rule
+ * @param ruleName given rule
+ * @return error code
+ */
+int generate_operation ( pt_rule ruleName );
 
 #endif

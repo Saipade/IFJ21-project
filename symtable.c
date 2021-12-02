@@ -15,71 +15,86 @@
 #include <string.h>
 
 /* .......................................... Symbol table .......................................... */
+// TO DELETE
+void *safemalloc( size_t _Size ){
+	void *ret = malloc( _Size );
+	if ( ret == NULL ) {
+		exit(99);
+	}
+	return ret;
+}
 
-void st_init ( Sym_table_itemPtr *symTable ) {
+void st_init ( Sym_table_item **symTable ) {
 
     *symTable = NULL;
 
 }
 
-Item_data *st_add_id ( Sym_table_itemPtr *symTable, char *key ) {
-
-    if (!symTable || !key) return NULL;
-    
-    Sym_table_itemPtr newItem;
-    newItem = malloc( sizeof( struct Sym_table_item ) );
-    if (!newItem) exit( ERR_INTERNAL );
-
-    // id name
-    newItem->key = malloc( (strlen( key ) + 1) * sizeof( char ) );
-    if (!newItem->key) exit( ERR_INTERNAL );
-    strcpy( newItem->key, key );
-    newItem->data.id = newItem->key;
-
-    // input params initialization                                                       
-    newItem->data.inputTypes = malloc( sizeof( Dynamic_string ));
-    if (!newItem->data.inputTypes) exit( ERR_INTERNAL );
-    if (!ds_init( newItem->data.inputTypes )) exit( ERR_INTERNAL );
-    
-    // output types initialization
-    newItem->data.outputTypes = malloc( sizeof( Dynamic_string ));
-    if (!newItem->data.outputTypes) exit( ERR_INTERNAL );
-    if (!ds_init( newItem->data.outputTypes )) exit( ERR_INTERNAL );
-
-    newItem->leftItem = newItem->rightItem = NULL;
-    newItem->data.ifdec = 0;
-    newItem->data.ifdef = 0;
-    // insert initialized item to symbol table
-    st_insert( symTable, newItem );
-
-    return &newItem->data;
-
-}
-
-int st_insert ( Sym_table_itemPtr *symTable, Sym_table_itemPtr newItem ) {
-    
-    if (symTable == NULL) return ERR_INTERNAL;
+Item_data *st_add_id ( Sym_table_item **symTable, char *key ) {
     
     if (!(*symTable)) {
-
-        *symTable = newItem;
         
+        *symTable = safemalloc( sizeof( Sym_table_item ) );
+        if (!*symTable) exit( ERR_INTERNAL );
+        
+        // name
+        (*symTable)->key = malloc( (strlen( key ) + 1) * sizeof( char ) );
+        if (!(*symTable)->key) exit( ERR_INTERNAL );
+        strcpy( (*symTable)->key, key );
+        (*symTable)->data.id = (*symTable)->key;
+        
+        // input params (dynamic string) initialization                                                       
+        (*symTable)->data.inputTypes = malloc( sizeof( Dynamic_string ));
+        if (!(*symTable)->data.inputTypes) exit( ERR_INTERNAL );
+        if (!ds_init( (*symTable)->data.inputTypes )) exit( ERR_INTERNAL );
+        
+        // output types (dynamic string) initialization
+        (*symTable)->data.outputTypes = malloc( sizeof( Dynamic_string ));
+        if (!(*symTable)->data.outputTypes) exit( ERR_INTERNAL );
+        if (!ds_init( (*symTable)->data.outputTypes )) exit( ERR_INTERNAL );
+
+        (*symTable)->leftItem = NULL;
+        (*symTable)->rightItem = NULL;
+        (*symTable)->data.ifdec = 0;
+        (*symTable)->data.ifdef = 0;
+
+        return &(*symTable)->data;
+
     }
 
-    else if (!strcmp( newItem->key, (*symTable)->key )) exit( ERR_SEMANTIC_UNDEF_VAR );
+    else if (!strcmp( key, (*symTable)->key )) exit( ERR_SEMANTIC_UNDEF_VAR );
     
-    else if (strcmp( newItem->key, (*symTable)->key ) > 0) {
+    else if (strcmp( key, (*symTable)->key ) > 0) {
         
-        st_insert( &(*symTable)->rightItem, newItem );
+        st_add_id( &(*symTable)->rightItem, key );
 
     } 
     
-    else if (strcmp( newItem->key, (*symTable)->key ) < 0) {
+    else if (strcmp( key, (*symTable)->key ) < 0) {
 
-        st_insert( &(*symTable)->leftItem, newItem );
+        st_add_id( &(*symTable)->leftItem, key );
 
     }
 
+}
+
+void st_dispose ( Sym_table_item **symTable ) {
+
+    if (!(*symTable)) return;
+
+    st_dispose( &(*symTable)->leftItem );
+    st_dispose( &(*symTable)->rightItem );
+
+    Sym_table_item *tmp = *symTable;
+    ds_free( tmp->data.inputTypes );
+    free( tmp->data.inputTypes );
+    ds_free( tmp->data.outputTypes );
+    free( tmp->data.outputTypes );
+    free( tmp->key );
+    free( tmp );
+
+    tmp = NULL;
+    
 }
 
 int st_add_param ( Dynamic_string *types, Keyword dataType ) {
@@ -99,9 +114,6 @@ int st_add_param ( Dynamic_string *types, Keyword dataType ) {
         case (KW_STRING):
             if (!ds_add_char( types, 's' )) exit( ERR_INTERNAL );
         break;
-
-        /* case (KW_BOOLEAN): until better times
-            if (!ds_add_char( types, 'b' )) return ERR_INTERNAL;*/
 
         case (ANY):
             if (!ds_add_char( types, 'a' )) exit( ERR_INTERNAL );
@@ -134,9 +146,6 @@ int st_add_type ( Token *token, Item_data *item ) {
             item->type = T_STR;
         break;
 
-        /* case (KW_BOOLEAN):
-            item->type = T_BOO;*/
-
         default:
             return ERR_SYNTAX;
 
@@ -146,7 +155,7 @@ int st_add_type ( Token *token, Item_data *item ) {
 
 }
 
-Item_data *st_search ( Sym_table_itemPtr symTable, char *key ) {
+Item_data *st_search ( Sym_table_item *symTable, char *key ) {
 
     if (!symTable) return NULL;
 
@@ -170,38 +179,13 @@ Item_data *st_search ( Sym_table_itemPtr symTable, char *key ) {
 
 }  
 
-void st_dispose ( Sym_table_itemPtr *symTable ) {
-
-    if (!(*symTable)) return;
-
-    st_dispose( &(*symTable)->leftItem );
-    st_dispose( &(*symTable)->rightItem );
-    
-    ds_free( (*symTable)->data.inputTypes );
-    free( (*symTable)->data.inputTypes );
-    ds_free( (*symTable)->data.outputTypes );
-    free( (*symTable)->data.outputTypes );
-    free( (*symTable)->key );
-    free( (*symTable)->data.id );
-    free( (*symTable) );
-
-    (*symTable)->data.inputTypes->str = NULL;
-    (*symTable)->data.inputTypes = NULL;
-    (*symTable)->data.outputTypes->str = NULL;
-    (*symTable)->data.outputTypes = NULL;
-    (*symTable)->key = NULL;
-    (*symTable)->data.id = NULL;
-    (*symTable) = NULL;
-    
-}
-
 // for debugging reasons
-void st_print ( Sym_table_itemPtr *symTable ) {
-    //printf("hi\n");
-    if (*symTable) {
-        printf( "%s \n", (*symTable)->key );
-        if ((*symTable)->leftItem) st_print( &(*symTable)->leftItem );
-        if ((*symTable)->rightItem) st_print( &(*symTable)->rightItem );
+void st_print ( Sym_table_item *symTable ) {
+    
+    if (symTable) {
+        printf( "%s \n", symTable->key );
+        if (symTable->leftItem) st_print( symTable->leftItem );
+        if (symTable->rightItem) st_print( symTable->rightItem );
     }
 
 }
@@ -210,27 +194,24 @@ void st_print ( Sym_table_itemPtr *symTable ) {
 
 void sts_init ( SymTable_Stack *stack ) {
 
-    stack = malloc( sizeof (SymTable_Stack) );
     if (stack) stack->top = NULL;
 
 }
 
-Sym_table_itemPtr *sts_push ( SymTable_Stack *stack, int depth ) {
+Sym_table_item **sts_push ( SymTable_Stack *stack, int depth ) {
 
     if (!stack) return NULL;
 
-    SymTable_Stack_item *newItem = malloc( sizeof( SymTable_Stack_item ));
-    if (!newItem) return NULL;
+    SymTable_Stack_item *newItem = safemalloc( sizeof( SymTable_Stack_item ));
+    if (!newItem) exit( ERR_INTERNAL );
 
-    newItem->symTable = malloc( sizeof( Sym_table_itemPtr ));
-    if (!newItem->symTable) return NULL;
-    st_init( newItem->symTable );
+    st_init( &newItem->symTable );
 
     newItem->nextItem = stack->top;
-    newItem->depth = depth;
     stack->top = newItem;
+    newItem->depth = depth;
 
-    return newItem->symTable;
+    return &newItem->symTable;
 
 }
 
@@ -241,23 +222,24 @@ void sts_pop ( SymTable_Stack *stack ) {
         SymTable_Stack_item *toPop = stack->top;
         stack->top = stack->top->nextItem;
 
-        st_dispose( toPop->symTable );
-        free( toPop->symTable );
+        st_dispose( &toPop->symTable );
         toPop->symTable = NULL;
 
         free( toPop );
-        stack->top = NULL;
 
     }
 
 }
 
-void sts_dispose ( SymTable_Stack *stack ) {
-
-    while (stack->top) {
-
-        sts_pop( stack );
-
-    }
+void sts_dispose ( SymTable_Stack_item *top ) {
+    
+    if (!top) return;
+    // recursion
+    sts_dispose( top->nextItem );
+    // symbol table dispose
+    st_dispose( &top->symTable );
+    top->symTable = NULL;
+    free( top );
+    top = NULL;
 
 }

@@ -8,7 +8,7 @@
 #define SEARCH_GLOBAL(STR)                                                                                                      \
     do {                                                                                                                        \
         Item_data *tmp = parserData->currentFunc;                                                                               \
-        parserData->currentFunc = st_search( *parserData->globalSymTable, STR );                                                \
+        parserData->currentFunc = st_search( *parserData->globalSymTable, STR );                                                 \
         if (parserData->currentFunc == NULL) {                                                                                  \
             res = 0;                                                                                                            \
             parserData->currentFunc = tmp;                                                                                      \
@@ -19,7 +19,7 @@
 #define SEARCH_LOCAL(STR)                                                                                                       \
     do {                                                                                                                        \
         Item_data *tmp = parserData->currentVar;                                                                                \
-        parserData->currentVar = st_search( *parserData->STStack.top->symTable, STR );                                                \
+        parserData->currentVar = st_search( parserData->STStack.top->symTable, STR );                                           \
         if (parserData->currentVar == NULL) {                                                                                   \
             res = 0;                                                                                                            \
             parserData->currentVar = tmp;                                                                                       \
@@ -30,12 +30,12 @@
 #define SEARCH_GLOBAL_AND_LOCAL(STR)                                                                                            \
     do {                                                                                                                        \
         Item_data *tmp = parserData->currentFunc;                                                                               \
-        parserData->currentFunc = st_search( *parserData->globalSymTable, STR );                                                \
+        parserData->currentFunc = st_search( *parserData->globalSymTable, STR );                                                 \
         if (parserData->currentFunc == NULL) {                                                                                  \
             parserData->currentFunc = tmp;                                                                                      \
             tmp = parserData->currentVar;                                                                                       \
         }                                                                                                                       \
-        parserData->currentVar = st_search( *parserData->STStack.top->symTable, STR );                                                \
+        parserData->currentVar = st_search( parserData->STStack.top->symTable, STR );                                           \
         if (parserData->currentVar == NULL) {                                                                                   \
             parserData->currentVar = tmp;                                                                                       \
             res = 0;                                                                                                            \
@@ -48,7 +48,7 @@
         SymTable_Stack_item *iterator = parserData->STStack.top;                                                                \
         Item_data *tmp = parserData->currentVar;                                                                                \
         while (iterator->depth > 0) {                                                                                           \
-            parserData->currentVar = st_search( *iterator->symTable, STR );                                                     \
+            parserData->currentVar = st_search( iterator->symTable, STR );                                                      \
             if (parserData->currentVar != NULL) break;                                                                          \
             iterator = iterator->nextItem;                                                                                      \
         }                                                                                                                       \
@@ -62,13 +62,13 @@
 
 #define ADD_GLOBAL(STR)                                                                                                         \
     do {                                                                                                                        \
-        parserData->currentFunc = st_add_id( parserData->globalSymTable, STR );                                                 \
+        parserData->currentFunc = st_add_id( parserData->globalSymTable, STR );                                                \
         parserData->currentFunc->depth = parserData->currentDepth;                                                              \
     } while (0)
 
 #define ADD_LOCAL(STR)                                                                                                          \
     do {                                                                                                                        \
-        parserData->currentVar  = st_add_id( parserData->STStack.top->symTable, STR );                                          \
+        parserData->currentVar  = st_add_id( &parserData->STStack.top->symTable, STR );                                         \
         parserData->currentVar->depth = parserData->currentDepth;                                                               \
     } while (0)
 
@@ -84,26 +84,26 @@ typedef struct {
 
 } Item_data;
 
-typedef struct Sym_table_item {
+typedef struct Sym_table_elem {
 
     char *key;                                  // identifier
     Item_data data;                             // item data
-    struct Sym_table_item *leftItem;            // left child
-    struct Sym_table_item *rightItem;           // right child
+    struct Sym_table_elem *leftItem;            // left child
+    struct Sym_table_elem *rightItem;           // right child
 
-} *Sym_table_itemPtr;
+} Sym_table_item;
 
 
 /* typedef struct {
 
-    Sym_table_itemPtr rootItem;                 // pointer on root node
+    Sym_table_item * rootItem;                 // pointer on root node
 
 } Sym_table; */
 
 typedef struct STSElem {
 
     int depth;
-    Sym_table_itemPtr *symTable;
+    Sym_table_item * symTable;
     struct STSElem *nextItem;
 
 } SymTable_Stack_item;
@@ -118,14 +118,14 @@ typedef struct {
  * @brief Initializes symbol table
  * @param symTable symbol table to initialize
  */
-void st_init ( Sym_table_itemPtr *symTable );
+void st_init ( Sym_table_item **symTable );
 
 /**
  * @brief Adds identifier to the table
  * @param symTable symbol table that id will be added to 
  * @param key identifier of function/variable
  */ 
-Item_data *st_add_id ( Sym_table_itemPtr *symTable, char *key );
+Item_data *st_add_id ( Sym_table_item **symTable, char *key );
 /**
  * @brief Adds input/output type to function
  * @param types dynamic string that represents i/o types
@@ -148,26 +148,18 @@ int st_add_type ( Token *token, Item_data *item );
  * @param key identifier
  * @return data or NULL in case nothing was found
  */
-Item_data *st_search ( Sym_table_itemPtr symTable, char *key );
+Item_data *st_search ( Sym_table_item *symTable, char *key );
 
 /**
  * @brief Disposes entire symbol table
  * @param rootItem root item of symbol table
  */
-void st_dispose ( Sym_table_itemPtr *symTable );
-
-/**
- * @brief Inserts new item in symbol table
- * @param rootItem root item of symbol table
- * @param newItem new item to be inserted
- * @return Error code
- */
-int st_insert ( Sym_table_itemPtr *symTable, Sym_table_itemPtr newItem );
+void st_dispose ( Sym_table_item **symTable );
 
 /**
  * @brief Debugging
  */
-void st_print ( Sym_table_itemPtr *symTable );
+void st_print ( Sym_table_item *symTable );
 
 /**
  * @brief Initializes symbol table stack
@@ -181,7 +173,7 @@ void sts_init ( SymTable_Stack *stack );
  * @param symTable Symbol table to be inserted
  * @param depth 
  */
-Sym_table_itemPtr *sts_push ( SymTable_Stack *stack, int depth);
+Sym_table_item **sts_push ( SymTable_Stack *stack, int depth);
 
 /**
  * @brief Removes symbol table item from the top of the stack
@@ -193,6 +185,6 @@ void sts_pop ( SymTable_Stack *stack );
  * @brief Disposes entire symbol table stack
  * @param stack Symbol table stack
  */
-void sts_dispose ( SymTable_Stack *stack );
+void sts_dispose ( SymTable_Stack_item *top );
 
 #endif

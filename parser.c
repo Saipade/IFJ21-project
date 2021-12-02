@@ -137,7 +137,6 @@ int get_next_token_and_apply_rule ( Parser_data *parserData, char *rulename ) {
     
     int tmp;
     if (tmp = get_next_token( &parserData->token )) return tmp;
-    printf( "(%d -) ", parserData->token.type );
 
     if (!strcmp( rulename, "rule_expression" ))                 { if (tmp = rule_expression( parserData )) return tmp; }
     else if (!strcmp( rulename, "rule_statementList"))          { if (tmp = rule_statementList( parserData )) return tmp; }
@@ -158,10 +157,9 @@ int get_next_token_and_apply_rule ( Parser_data *parserData, char *rulename ) {
     else if (!strcmp( rulename, "rule_returnValue" ))           { if (tmp = rule_returnValue( parserData )) return tmp; }
     else if (!strcmp( rulename, "rule_writeArgumentList" ))     { if (tmp = rule_writeArgumentList( parserData )) return tmp; }
     else if (!strcmp( rulename, "rule_otherWriteArgument" ))    { if (tmp = rule_otherWriteArgument( parserData )) return tmp; }
-    else { printf("RULE DOES NOT EXIST\n"); return 0; }
 
 }
-
+// valgrind --leak-check=full --track-origins=yes ./main.exe < testCurrent.txt
 bool parser_data_init ( Parser_data *parserData ) {
 
     int res = 0;
@@ -181,58 +179,58 @@ bool parser_data_init ( Parser_data *parserData ) {
     parserData->whileIndex = 0;
     parserData->currentDepth = 0;
     parserData->paramIndex = 0;
-    
+        
     sts_init( &parserData->STStack );
     parserData->globalSymTable = sts_push( &parserData->STStack, parserData->currentDepth );
     q_init( &parserData->queue );
+
     // built-in functions
-    Item_data *tmp;
-    tmp = st_add_id( parserData->globalSymTable, "reads" );
-    if (res = st_add_param( tmp->outputTypes, KW_STRING )) return false;
-    tmp->ifdec = 1;
-    tmp->ifdef = 1;
+    ADD_GLOBAL( "reads" );
+    if (res = st_add_param( parserData->currentFunc->outputTypes, KW_STRING )) return false;
+    parserData->currentFunc->ifdec = 1;
+    parserData->currentFunc->ifdef = 1;
 
-    tmp = st_add_id( parserData->globalSymTable, "readi" );
-    if (res = st_add_param( tmp->outputTypes, KW_INTEGER )) return false;
-    tmp->ifdec = 1;
-    tmp->ifdef = 1;
+    ADD_GLOBAL( "readi" );
+    if (res = st_add_param( parserData->currentFunc->outputTypes, KW_INTEGER )) return false;
+    parserData->currentFunc->ifdec = 1;
+    parserData->currentFunc->ifdef = 1;
     
-    tmp = st_add_id( parserData->globalSymTable, "readn" );
-    if (res = st_add_param( tmp->outputTypes, KW_NUMBER )) return false;
-    tmp->ifdec = 1;
-    tmp->ifdef = 1;
+    ADD_GLOBAL( "readn" );
+    if (res = st_add_param( parserData->currentFunc->outputTypes, KW_NUMBER )) return false;
+    parserData->currentFunc->ifdec = 1;
+    parserData->currentFunc->ifdef = 1;
 
-    tmp = st_add_id( parserData->globalSymTable, "write" );
-    if (res = st_add_param( tmp->inputTypes, ANY )) return false;
-    tmp->ifdec = 1;
-    tmp->ifdef = 1;
+    ADD_GLOBAL( "write" );
+    if (res = st_add_param( parserData->currentFunc->outputTypes, ANY )) return false;
+    parserData->currentFunc->ifdec = 1;
+    parserData->currentFunc->ifdef = 1;
 
-    tmp = st_add_id( parserData->globalSymTable, "tointeger" );
-    if (res = st_add_param( tmp->outputTypes, KW_NUMBER )) return false;
-    if (res = st_add_param( tmp->inputTypes, KW_INTEGER )) return false;
-    tmp->ifdec = 1;
-    tmp->ifdef = 1;
+    ADD_GLOBAL( "tointeger" );
+    if (res = st_add_param( parserData->currentFunc->outputTypes, KW_NUMBER )) return false;
+    if (res = st_add_param( parserData->currentFunc->inputTypes, KW_INTEGER )) return false;
+    parserData->currentFunc->ifdec = 1;
+    parserData->currentFunc->ifdef = 1;
     
-    tmp = st_add_id( parserData->globalSymTable, "substr" );
-    if (res = st_add_param( tmp->inputTypes, KW_STRING)) return false;
-    if (res = st_add_param( tmp->inputTypes, KW_NUMBER )) return false;
-    if (res = st_add_param( tmp->inputTypes, KW_NUMBER )) return false;
-    if (res = st_add_param( tmp->outputTypes, KW_STRING )) return false;
-    tmp->ifdec = 1;
-    tmp->ifdef = 1;
+    ADD_GLOBAL( "substr" );
+    if (res = st_add_param( parserData->currentFunc->inputTypes, KW_STRING)) return false;
+    if (res = st_add_param( parserData->currentFunc->inputTypes, KW_NUMBER )) return false;
+    if (res = st_add_param( parserData->currentFunc->inputTypes, KW_NUMBER )) return false;
+    if (res = st_add_param( parserData->currentFunc->outputTypes, KW_STRING )) return false;
+    parserData->currentFunc->ifdec = 1;
+    parserData->currentFunc->ifdef = 1;
 
-    tmp = st_add_id( parserData->globalSymTable, "ord" );
-    if (res = st_add_param( tmp->inputTypes, KW_STRING)) return false;
-    if (res = st_add_param( tmp->inputTypes, KW_INTEGER )) return false;
-    if (res = st_add_param( tmp->outputTypes, KW_INTEGER )) return false;
-    tmp->ifdec = 1;
-    tmp->ifdef = 1;
+    ADD_GLOBAL( "ord" );
+    if (res = st_add_param( parserData->currentFunc->inputTypes, KW_STRING)) return false;
+    if (res = st_add_param( parserData->currentFunc->inputTypes, KW_INTEGER )) return false;
+    if (res = st_add_param( parserData->currentFunc->outputTypes, KW_INTEGER )) return false;
+    parserData->currentFunc->ifdec = 1;
+    parserData->currentFunc->ifdef = 1;
 
-    tmp = st_add_id( parserData->globalSymTable, "chr" );
-    if (res = st_add_param( tmp->inputTypes, KW_INTEGER )) return false;
-    if (res = st_add_param( tmp->outputTypes, KW_STRING )) return false;
-    tmp->ifdec = 1;
-    tmp->ifdef = 1;
+    ADD_GLOBAL( "chr" );
+    if (res = st_add_param( parserData->currentFunc->inputTypes, KW_INTEGER )) return false;
+    if (res = st_add_param( parserData->currentFunc->outputTypes, KW_STRING )) return false;
+    parserData->currentFunc->ifdec = 1;
+    parserData->currentFunc->ifdef = 1;// to delete
 
     return true;
 
@@ -261,17 +259,17 @@ int parse (  ) {
     if (res = rule_prologue( parserData )) return res;
     // <function list>
     if (res = rule_functionList( parserData )) return res;
-    
-    free( parserData->globalSymTable );
+
     q_dispose( &parserData->queue );
-    sts_dispose( &parserData->STStack );
-    
+    sts_dispose( parserData->STStack.top );
+
+    // print result program
     cg_output( stdout );
     ds_free( scannerString );
 
     return res; 
 
-}// TODO обработка функций в экспр (см testCurrent)
+}
 
 /*........................................ RECURSIVE TOP-DOWN PARSER ........................................ */
 
@@ -300,7 +298,6 @@ int rule_functionList ( Parser_data *parserData ) {
     parserData->currentFunc = NULL;
     parserData->insideFunc = NULL;
 
-    printf( "(%d %d) ", parserData->token.type, parserData->token.attribute.keyword );
     if      (parserData->token.type == T_EOF) {
 
         return 0;
@@ -347,14 +344,14 @@ int rule_entryPoint ( Parser_data *parserData ) {
     SEARCH_GLOBAL( parserData->token.attribute.string->str );
     if (res == 0) exit( ERR_SEMANTIC_UNDEF_VAR );
     res = 0;
-    // called function must have no input and no output
+    // called function must have no output
     if (parserData->currentFunc->outputTypes->length != 0) exit( ERR_SEMANTIC_OTHER );
-
 
     if (res = get_next_token_and_check_type( parserData, T_LBR )) exit( res );                              // (
     if (res = get_next_token_and_check_type( parserData, T_RBR )) exit( res );                              // )
 
-    cg_call( parserData->currentFunc->id );
+    if (!cg_frame_to_pass_param (  )) exit( ERR_INTERNAL );
+    if (!cg_call( parserData->currentFunc->id )) exit( ERR_INTERNAL );
 
     if (res = get_next_token( &parserData->token )) exit( res );
     return 0;
@@ -365,6 +362,8 @@ int rule_functionDeclaration ( Parser_data *parserData ) {
 
     int res = 0;                                                                                            // GLOBAL
     
+    printf( "(%d %d) ", parserData->token.type, parserData->token.attribute.keyword ); // to delete
+
     if (res = get_next_token_and_check_type( parserData, T_IDE )) exit( res );                              // ID
     SEARCH_GLOBAL( parserData->token.attribute.string->str );
     if (res == 1) exit( ERR_SEMANTIC_UNDEF_VAR ); // attempt of function redeclaration or declaration after definition
@@ -376,6 +375,7 @@ int rule_functionDeclaration ( Parser_data *parserData ) {
 
     if (res = get_next_token_and_apply_rule( parserData, "rule_declarationParams" )) exit( res );           // <declaration params>
     if (parserData->token.type != T_RBR) exit( ERR_SYNTAX );                                                // )
+    printf( "(%d -) ", parserData->token.type ); // to delete
 
     if (res = get_next_token_and_apply_rule( parserData, "rule_output" )) exit( res );                      // <output>
     
@@ -390,7 +390,7 @@ int rule_declarationParams ( Parser_data *parserData ) {
     int res = 0;
 
     if (parserData->token.type == T_RBR) return res;
-
+    printf("(%d -) ", parserData->token.type ); // to delete
     if (res = st_add_param( parserData->currentFunc->inputTypes, parserData->token.attribute.keyword )) exit( res );
 
     return rule_otherDeclarationParam( parserData );
@@ -403,9 +403,11 @@ int rule_otherDeclarationParam ( Parser_data *parserData ) {
     
     if (res = get_next_token( &parserData->token )) exit( res );
 
-    if (parserData->token.type != T_COM) return res;
+    printf( "(%d -) ", parserData->token.type ); // to delete
+    if (parserData->token.type == T_RBR) return res;
 
     if (res = get_next_token( &parserData->token )) exit( res );
+    printf( "(%d -) ", parserData->token.type ); // to delete
     if (res = st_add_param( parserData->currentFunc->inputTypes, parserData->token.attribute.keyword )) exit( res );
 
     return rule_otherDeclarationParam( parserData );
@@ -604,7 +606,6 @@ int rule_statementList ( Parser_data *parserData ) {
     if (parserData->token.type == T_IDE) {
         
         // currentFunc <- search var id 
-            printf("HI\n");
         SEARCH_GLOBAL( parserData->token.attribute.string->str );
         // $1.0
         // <statement> -> <ID list> <smth>
@@ -620,7 +621,8 @@ int rule_statementList ( Parser_data *parserData ) {
         else if (res == 1) {
             
             res = 0;
-            
+            printf( "(%d func call) ", parserData->token.type );
+
             if (!cg_frame_to_pass_param(  )) exit( ERR_INTERNAL );
             if (res = get_next_token_and_check_type( parserData, T_LBR )) exit( res );                      // (
             if (res = get_next_token_and_apply_rule( parserData, "rule_functionCallParams" )) exit( res );  // <function call param list>
@@ -690,9 +692,9 @@ int rule_statementList ( Parser_data *parserData ) {
         if (parserData->token.attribute.keyword != KW_ELSE) exit( ERR_SYNTAX );                             // ELSE
         
         if (!cg_if_else( parserData->ifIndex, parserData->insideFunc->id )) exit( ERR_INTERNAL );
-        
-        st_dispose( parserData->STStack.top->symTable );
-        st_init( parserData->STStack.top->symTable );
+
+        st_dispose( &parserData->STStack.top->symTable );
+        //st_init( parserData->STStack.top->symTable ); 
         if (res = get_next_token_and_apply_rule( parserData, "rule_statementList" )) return res;            // <statement list>
         
         sts_pop( &parserData->STStack );
@@ -710,21 +712,25 @@ int rule_statementList ( Parser_data *parserData ) {
     // $4
     // <statement> -> WhILE <expression> DO <statement list> END . <statement list>
     else if (parserData->token.attribute.keyword == KW_WHILE) {                                             // WHILE
-        
-        printf( "(%d %d) ", parserData->token.type, parserData->token.attribute.keyword );
+
+        int currentIndex = parserData->whileIndex;
+
+        printf( "(%d %d) ", parserData->token.type, parserData->token.attribute.keyword );  // to delete
+        if (!cg_while_header( currentIndex, parserData->insideFunc->id )) exit( ERR_INTERNAL );
         if (res = get_next_token_and_apply_rule( parserData, "rule_expression" )) return res;               // <expression>
         if (parserData->token.attribute.keyword != KW_DO) exit( ERR_SYNTAX );                               // DO
-        printf( "(%d %d) ", parserData->token.type, parserData->token.attribute.keyword );
+        printf( "(%d %d) ", parserData->token.type, parserData->token.attribute.keyword );  // to delete
         
-        if (!cg_while_header( parserData->whileIndex, parserData->insideFunc->id )) exit( ERR_INTERNAL );
+        if (!cg_while_condition( currentIndex, parserData->insideFunc->id )) exit( ERR_INTERNAL );
 
         parserData->whileIndex++;
         parserData->currentDepth++;
         sts_push( &parserData->STStack, parserData->currentDepth );
 
         if (res = get_next_token_and_apply_rule( parserData, "rule_statementList" )) return res;            // <statement list>
-        if (res = get_next_token_and_check_keyword( parserData, KW_END )) return res;                       // END
-
+        if (parserData->token.attribute.keyword != KW_END) exit( ERR_SYNTAX );                              // END
+        if (!cg_while_end( currentIndex, parserData->insideFunc->id )) exit( ERR_INTERNAL );
+        printf( "(%d %d) ", parserData->token.type, parserData->token.attribute.keyword ); // to delete
         sts_pop( &parserData->STStack );
         parserData->currentDepth--;
 
@@ -830,7 +836,6 @@ int rule_assignmentValue ( Parser_data *parserData ) {
     // value ? variable : function : constant
     if (parserData->token.type == T_IDE || (IS_BUILTIN(parserData->token))) {
 
-        printf("%d %d\n", parserData->token.type, parserData->token.attribute.keyword); // to delete
         if (IS_BUILTIN(parserData->token)) {SEARCH_BUILTIN( parserData->token ); }
         else SEARCH_GLOBAL( parserData->token.attribute.string->str );
 

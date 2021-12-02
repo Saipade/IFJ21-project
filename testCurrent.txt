@@ -1,15 +1,20 @@
 require "ifj21"
 
+global notmain : function (integer)
+
 function main()
 	
-	local a : integer = 5+12//2
-	local b : string = "chujpeezda"
-	if (a > 12) then
-		write(a, "\n")
-	else 
-		write(b, "\n")
-	end	
-
+	local a : integer = 21
+	notmain(a)
 end
 
 main()
+
+function notmain( a : integer) 
+
+	while (a > 0) do
+		write (a, "\n")
+		a = a - 1
+	end
+
+end

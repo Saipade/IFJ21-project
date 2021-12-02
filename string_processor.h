@@ -12,7 +12,6 @@
 #define DYNAMIC_STR_STARTING_MEM 20
 #define DYNAMIC_STR_INCREASE_MEM 10
 
-
 // String processing structure
 typedef struct {
 
@@ -60,7 +59,7 @@ bool ds_add_chars ( Dynamic_string *dynamicStr, char *str);
  * @param cStr pointer to current dynamic string
  * @return
  */
-void ds_free ( Dynamic_string *cStr );
+void ds_free ( Dynamic_string *str );
 
 
 

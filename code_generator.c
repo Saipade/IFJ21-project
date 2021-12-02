@@ -85,7 +85,6 @@ bool cg_function_header ( char *functionId ) {
     // function start label
     ADD_CODE( "LABEL $" );
     ADD_LINE( functionId );
-    ADD_LINE( "CREATEFRAME" );
     ADD_LINE( "PUSHFRAME" );
 
     return true;
@@ -499,14 +498,14 @@ bool cg_convert_res_int2num ( Res_mode mode ) {
 
 /* .......................................... IF/WHILE STATEMENT .......................................... */
 
-bool cg_if_header ( int index, char *functionName ) {
+bool cg_if_header ( int index, char *functionId ) {
 
     char strIndex[2];
 
     sprintf( strIndex, "%d", index );
 
     ADD_CODE( "JUMPIFNEQ $" );
-    ADD_CODE( functionName );
+    ADD_CODE( functionId );
     ADD_CODE( "$" );
     ADD_CODE( strIndex );
     ADD_CODE( "$if$else " );
@@ -517,20 +516,20 @@ bool cg_if_header ( int index, char *functionName ) {
     
 }
 
-bool cg_if_else ( int index, char *functionName ) {
+bool cg_if_else ( int index, char *functionId ) {
 
     char strIndex[2];
 
     sprintf( strIndex, "%d", index );
 
     ADD_CODE( "JUMP $" );
-    ADD_CODE( functionName );
+    ADD_CODE( functionId );
     ADD_CODE( "$" );
     ADD_CODE( strIndex );
     ADD_LINE( "$if$end" );
 
     ADD_CODE( "LABEL $" );
-    ADD_CODE( functionName );
+    ADD_CODE( functionId );
     ADD_CODE( "$" );
     ADD_CODE( strIndex );
     ADD_LINE( "$if$else" );
@@ -539,14 +538,14 @@ bool cg_if_else ( int index, char *functionName ) {
     
 }
 
-bool cg_if_end ( int index, char *functionName ) {
+bool cg_if_end ( int index, char *functionId ) {
 
     char strIndex[2];
 
     sprintf( strIndex, "%d", index );
 
     ADD_CODE( "LABEL $" );
-    ADD_CODE( functionName );
+    ADD_CODE( functionId );
     ADD_CODE( "$" );
     ADD_CODE( strIndex );
     ADD_LINE( "$if$end" );
@@ -555,47 +554,56 @@ bool cg_if_end ( int index, char *functionName ) {
 
 }
 
-bool cg_while_header ( int index, char *functionName ) {
+bool cg_while_header ( int index, char *functionId ) {
 
     char strIndex[2];
     sprintf( strIndex, "%d", index );
     // generate label for loop
     ADD_CODE( "LABEL $" );
-    ADD_CODE( functionName );
+    ADD_CODE( functionId );
     ADD_CODE( "$" );
     ADD_CODE( strIndex );
-    ADD_LINE( "$loop" );
+    ADD_LINE( "$loop$start" );
 
     return true;
 
 }
 
-bool cg_while_condition ( int index, char *functionName ) {
+bool cg_while_condition ( int index, char *functionId ) {
 
     char strIndex[2];
     sprintf( strIndex, "%d", index );
 
     ADD_CODE( "JUMPIFNEQ $");
-    ADD_CODE( functionName );
+    ADD_CODE( functionId );
     ADD_CODE( "$" );
     ADD_CODE( strIndex );
-    ADD_LINE( "$loop$end" );
+    ADD_CODE( "$loop$end " );
+
+    ADD_LINE( "GF@%expResult bool@true" );
 
     return true;
 
 }
 
-bool cg_while_end ( int index, char *functionName ) {
+bool cg_while_end ( int index, char *functionId ) {
 
     char strIndex[2];
 
     sprintf( strIndex, "%d", index );
-    // generate label for end of while loop
-    ADD_CODE( "LABEL" );
-    ADD_CODE( "$" );
-    ADD_CODE( functionName );
+
+    ADD_CODE( "JUMP $" );
+    ADD_CODE( functionId );
     ADD_CODE( "$" );
     ADD_CODE( strIndex );
+    ADD_LINE( "$loop$start" );
+    // generate label for end of while loop
+    ADD_CODE( "LABEL " );
+    ADD_CODE( "$" );
+    ADD_CODE( functionId );
+    ADD_CODE( "$" );
+    ADD_CODE( strIndex );
+    ADD_LINE( "$loop$end" );
 
     return true;
 
@@ -614,7 +622,7 @@ bool cg_save_result (  ) {
 bool cg_save_to ( Parser_data *parserData ) {
 
     char strDepth[2];
-    sprintf( strDepth, "%d", parserData->currentDepth );
+    sprintf( strDepth, "%d", parserData->lhsId->depth );
     ADD_CODE( "POPS " );
     ADD_CODE( "LF@%" );
     ADD_CODE( strDepth );
@@ -772,4 +780,54 @@ bool cg_neqs (  ) {
 
 }
 
+int generate_operation ( pt_rule ruleName ) {
+    
+    int res = 0;
 
+    switch (ruleName) {
+
+        case (LEN_E):
+            cg_lens(  );
+        break;
+        case (E_PLUS_E):
+            cg_adds(  );
+        break;
+        case (E_MINUS_E):
+            cg_subs(  );
+        break;
+        case (E_MUL_E):
+            cg_muls(  );
+        break;
+        case (E_DIV_E):
+            cg_divs(  );
+        break;
+        case (E_IDIV_E):
+            cg_idivs(  );
+        break;
+        case (E_CAT_E):
+            cg_cats(  );
+        break;
+        case (E_LTH_E):
+            cg_lths(  );
+        break;
+        case (E_LET_E):
+            cg_lets(  );
+        break;
+        case (E_MTH_E):
+            cg_mths(  );
+        break;
+        case (E_MET_E):
+            cg_mets(  );
+        break;
+        case (E_EQU_E):
+            cg_equs(  );
+        break;
+        case (E_NEQ_E):
+            cg_neqs(  );
+        break;
+
+    }
+
+    return 0;
+
+}

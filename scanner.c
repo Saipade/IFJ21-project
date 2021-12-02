@@ -144,7 +144,7 @@ int get_next_token ( Token *token ) {
                 
                 if (c == ' ' || c == '\n' || c == '\t' || c == 13) {
                     if (c == '\n') {
-                       printf("\n"); // for debugging resasons, delete before commiting
+                       printf("\n"); // for debugging resasons, to delete before commiting
                     }
 
                     scannerState = SCANNER_STATE_START;

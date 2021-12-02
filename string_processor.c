@@ -27,7 +27,7 @@ bool ds_init ( Dynamic_string *str ) {
 
 bool ds_add_char ( Dynamic_string *str, char c ) {
 
-    if (str->length + 2 >= str->size) {
+    if (str->length + 1 >= str->size) {
         str->size = str->length + DYNAMIC_STR_INCREASE_MEM;
         if (!(str->str = realloc( str->str, str->size ))) return false;
     }
@@ -42,7 +42,7 @@ bool ds_add_char ( Dynamic_string *str, char c ) {
 bool ds_copy ( Dynamic_string *src, Dynamic_string *dst ) {
 
     if (src->length >= dst->size) {
-        if (!(dst->str = realloc( dst->str, src->length + 2 ))) return false;
+        if (!(dst->str = realloc( dst->str, src->length + 1 ))) return false;
         dst->size = src->length + 2;
     }
     
@@ -55,7 +55,7 @@ bool ds_copy ( Dynamic_string *src, Dynamic_string *dst ) {
 
 bool ds_add_chars ( Dynamic_string *dynamicStr, char *str) {
 
-    if (dynamicStr->length + strlen(str) + 2 >= dynamicStr->size) {
+    if (dynamicStr->length + strlen(str) + 1 >= dynamicStr->size) {
         dynamicStr->size = dynamicStr->length + strlen(str) + DYNAMIC_STR_INCREASE_MEM;
         if (!(dynamicStr->str = realloc( dynamicStr->str, dynamicStr->size ))) return false;
     }

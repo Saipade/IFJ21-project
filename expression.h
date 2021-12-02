@@ -98,8 +98,33 @@ typedef enum {
 } pt_index;
 
 
+
+/**
+ * @brief Auxiliary function, converts token to symbol
+ * @param parserData contains token information
+ * @return Symbol
+ */
+pt_symbol convert_token2symbol ( Parser_data *parserData );
+
+/**
+ * @brief Auxiliary function, converts token to data type
+ * @param parserData contains token information
+ * @return data type
+ */
+Data_type convert_token2type( Parser_data *parserData );
+
+/**
+ * @brief Auxiliary function, converts given symbol to precedence table index
+ * @param symbol symbol
+ * @return precedence table index
+ */
+pt_index get_pt_index ( pt_symbol symbol );
+
+/**
+ * @brief Applies <expression> rule
+ * @param parserData contains all required information
+ * @return Error code
+ */
 int rule_expression ( Parser_data *parserData );
-
-
 
 #endif

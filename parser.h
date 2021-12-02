@@ -84,8 +84,8 @@ typedef struct {
 
     Token token;                // token got by get_next_token func
     Queue queue;                // queue structure for multiple assignment
-    Sym_table_itemPtr *currentSymTable;
-    Sym_table_itemPtr *globalSymTable; 
+    Sym_table_item *currentSymTable;
+    Sym_table_item **globalSymTable; 
     SymTable_Stack STStack;     // symbol table stack
     Item_data *lhsId;           // left-hand side 
     Item_data *currentVar;      // pointer to current variable

@@ -196,40 +196,75 @@ JUMP $over$main
 # Function main:
 
 LABEL $main
-CREATEFRAME
 PUSHFRAME
+DEFVAR LF@%1%vysl
+MOVE LF@%1%vysl int@0
+PUSHS int@0
+POPS LF@%1%vysl
 DEFVAR LF@%1%a
 MOVE LF@%1%a int@0
-PUSHS int@5
-PUSHS int@12
-PUSHS int@2
-IDIVS
-ADDS
-POPS LF@%1%a
-DEFVAR LF@%1%b
-MOVE LF@%1%b string@
-PUSHS string@chujpeezda
-POPS LF@%1%b
+PUSHS string@Zadejte\032cislo\032pro\032vypocet\032faktorialu\010
+POPS GF@%expResult
+CREATEFRAME
+DEFVAR TF@%0
+MOVE TF@%0 GF@%expResult
+CALL $write
+CREATEFRAME
+CALL $readi
+MOVE LF@%1%a TF@%retval0
 PUSHS LF@%1%a
-PUSHS int@12
-GTS
+PUSHS nil@nil
+EQS
 POPS GF@%expResult
 JUMPIFNEQ $main$1$if$else GF@%expResult bool@true
-PUSHS LF@%1%a
+PUSHS string@a\032je\032nil\010
 POPS GF@%expResult
 CREATEFRAME
 DEFVAR TF@%0
 MOVE TF@%0 GF@%expResult
 CALL $write
-PUSHS string@\010
-POPS GF@%expResult
-CREATEFRAME
-DEFVAR TF@%0
-MOVE TF@%0 GF@%expResult
-CALL $write
+JUMP $main$ret
 JUMP $main$1$if$end
 LABEL $main$1$if$else
-PUSHS LF@%1%b
+LABEL $main$1$if$end
+PUSHS LF@%1%a
+PUSHS int@0
+LTS
+POPS GF@%expResult
+JUMPIFNEQ $main$2$if$else GF@%expResult bool@true
+PUSHS string@Faktorial\032nelze\032spocitat\010
+POPS GF@%expResult
+CREATEFRAME
+DEFVAR TF@%0
+MOVE TF@%0 GF@%expResult
+CALL $write
+JUMP $main$2$if$end
+LABEL $main$2$if$else
+PUSHS int@1
+POPS LF@%1%vysl
+LABEL $main$0$loop$start
+PUSHS LF@%1%a
+PUSHS int@0
+GTS
+POPS GF@%expResult
+JUMPIFNEQ $main$0$loop$end GF@%expResult bool@true
+PUSHS LF@%1%vysl
+PUSHS LF@%1%a
+MULS
+POPS LF@%1%vysl
+PUSHS LF@%1%a
+PUSHS int@1
+SUBS
+POPS LF@%1%a
+JUMP $main$0$loop$start
+LABEL $main$0$loop$end
+PUSHS string@Vysledek\032je:\032
+POPS GF@%expResult
+CREATEFRAME
+DEFVAR TF@%0
+MOVE TF@%0 GF@%expResult
+CALL $write
+PUSHS LF@%1%vysl
 POPS GF@%expResult
 CREATEFRAME
 DEFVAR TF@%0
@@ -241,7 +276,7 @@ CREATEFRAME
 DEFVAR TF@%0
 MOVE TF@%0 GF@%expResult
 CALL $write
-LABEL $main$1$if$end
+LABEL $main$2$if$end
 LABEL $main$ret
 POPFRAME
 RETURN
@@ -250,4 +285,5 @@ RETURN
 
 LABEL $over$main
 
+CREATEFRAME
 CALL $main

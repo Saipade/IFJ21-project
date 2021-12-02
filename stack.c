@@ -14,7 +14,7 @@ void s_init ( Stack *stack ) {
 void s_push ( Stack *stack, Data_type type, pt_symbol symbol ) {
 
     Stack_item *newItem = malloc( sizeof ( Stack_item ) );
-    if (!newItem) return;
+    if (!newItem) exit( ERR_INTERNAL );
 
     newItem->nextItem = stack->top;
     newItem->symbol = symbol;
