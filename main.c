@@ -3,7 +3,6 @@
  * 
  * AUTHOR(S): Maksim Tikhonov (xtikho00)
  *            Sadovskyi Dmytro (xsadov06)
- *            Galliamov Eduard (xgalli01)
  */
 
 #include "string_processor.h"
@@ -12,18 +11,23 @@
 
 #include <stdlib.h>
 
+FILE *srcF;
+
+void _source_file ( FILE *file ) {
+
+    srcF = file;
+
+}
 
 
-int main ( int argc, char *argv[] ) {
-
-    FILE *srcF;
+int main (  ) {
 
     srcF = stdin;
 
     _source_file( srcF );
 
-    parse(  );
-    
-    exit( 0 );
+    int res = parse(  );
+
+    return res;
 
 }

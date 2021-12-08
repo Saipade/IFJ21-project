@@ -1,3 +1,10 @@
+/**
+ * PROJECT: Implementation of imperative programming language compiler
+ * PART: Lexical analyzer (scanner)
+ *
+ * AUTHOR(S): Maksim Tikhonov (xtikho00) 
+ */
+
 #ifndef SCANNER_H
 #define SCANNER_H
 
@@ -12,41 +19,40 @@
 typedef enum {
 
     SCANNER_STATE_START,                    // Starting state
-    SCANNER_STATE_EOL,                      // EOL state
-    SCANNER_STATE_TILD,                     // Tilda; encountering '=' leads to T_NEQ
-    SCANNER_STATE_FIRST_DASH,               // Might be either minus operator or start of comment
-    SCANNER_STATE_SLASH,                    // Slash
-    SCANNER_STATE_COMMENT_LINE,             // --
-    SCANNER_STATE_COMMENT_READ,             // Skipping line comment
-    SCANNER_STATE_COMMENT_LSB,              // First square bracket after double dash
-    SCANNER_STATE_COMMENTBLOCK,             // Start of commentary block
-    SCANNER_STATE_COMMENTBLOCK_EXIT,        // exit?
+
     SCANNER_STATE_INT,                      // Integer state; can be converted either to _DOUBLE after encountering _POINT or _EXP after encountering e(E) or remain _INT
     SCANNER_STATE_EXP,                      // e(E) found; can be converted either to 
     SCANNER_STATE_EXP_NUM,                  // exp -> num
     SCANNER_STATE_EXP_SIGN,                 // exp -> sign -> num
     SCANNER_STATE_POINT,                    // Point found, next state -- _DOUBLE
     SCANNER_STATE_DOUBLE,                   // Double type state
-    SCANNER_STATE_HASHTAG,                  // Hashtag state
-    SCANNER_STATE_LENGTH,                   // Get length state
-    SCANNER_STATE_DOT,                      // Dot state -> conc. state
-    SCANNER_STATE_CONC,                     // Concatenation state
-    SCANNER_STATE_STRING,                   // String state
-    SCANNER_STATE_ESC_SEQ,                  // Escape sequence state
-    SCANNER_STATE_ESC_ZERO,                 // \0XX
-    SCANNER_STATE_ESC_ONE,                  // \1XX
-    SCANNER_STATE_ESC_TWO,                  // \2XX
-    SCANNER_STATE_ESC_ZERO_ZERO,            // \00X
-    SCANNER_STATE_ESC_TWO_FIVE,             // \25X
-    SCANNER_STATE_ESC_OTHER,                // 
+
     SCANNER_STATE_ID,                       // Identifier state
-    SCANNER_STATE_KW,                       // Keyword state
-    SCANNER_STATE_DECL,                     // Declaration (colon) state
+
     SCANNER_STATE_MT,                       // More than state
     SCANNER_STATE_LT,                       // Less than state
-    SCANNER_STATE_MET,                      // More or equal state
-    SCANNER_STATE_LET,                      // Less or equal state
-    SCANNER_STATE_EQUAL_SIGN,               // Equal sign -> '=' or "=="
+    SCANNER_STATE_TILD,                     // Tilda, encountering '=' leads to T_NEQ
+    SCANNER_STATE_EQUAL_SIGN,               // Equal sign; encountering '=' leads to T_EQU, anything else leads to T_ASS
+
+    SCANNER_STATE_COMMENT_LINE,             // --
+    SCANNER_STATE_COMMENT_READ,             // Skipping line comment
+    SCANNER_STATE_COMMENT_LSB,              // First square bracket after double dash
+    SCANNER_STATE_COMMENTBLOCK,             // Start of commentary block
+    SCANNER_STATE_COMMENTBLOCK_EXIT,        // ']' sign; encountering ']' leads to start state (end of block commentary), else leads to continue reading
+
+    SCANNER_STATE_FIRST_DASH,               // Dash sign; encountering '-' leads to line comment state, anything else leads to T_SUB
+    SCANNER_STATE_SLASH,                    // Slash sign; encountering '/' leads to T_IDI, anything else leads to T_DIV
+    SCANNER_STATE_DOT,                      // Dot, encountering another dot leads to T_CAT
+
+    SCANNER_STATE_STRING,                   // String state
+
+    SCANNER_STATE_ESC_SEQ,                  // Escape sequence state
+    SCANNER_STATE_ESC_ZERO,                 // \0XX 01 < XX < 99
+    SCANNER_STATE_ESC_ONE,                  // \1XX 00 < XX < 99
+    SCANNER_STATE_ESC_TWO,                  // \2XX 00 < XX < 55
+    SCANNER_STATE_ESC_ZERO_ZERO,            // \00X 1 < X < 9
+    SCANNER_STATE_ESC_TWO_FIVE,             // \25X 0 < X < 5
+    SCANNER_STATE_ESC_OTHER,                // others
 
 } scanner_state;
 
@@ -141,7 +147,7 @@ typedef struct {
 
 } Token;
 
-void _source_file ( FILE *file );
+//void _source_file ( FILE *file );
 
 void _token_string ( Dynamic_string *scannerString );
 

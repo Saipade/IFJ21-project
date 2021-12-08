@@ -1,9 +1,9 @@
-/*
-
-*/
-
-#ifndef STRING_PROCESSOR_C
-#define STRING_PROCESSOR_C
+/**
+ * PROJECT: Implementation of imperative programming language compiler
+ * PART: Dynamic string
+ *
+ * AUTHOR(S): Maksim Tikhonov (xtikho00) 
+ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -55,7 +55,7 @@ bool ds_copy ( Dynamic_string *src, Dynamic_string *dst ) {
 
 bool ds_add_chars ( Dynamic_string *dynamicStr, char *str) {
 
-    if (dynamicStr->length + strlen(str) + 1 >= dynamicStr->size) {
+    if (dynamicStr->length + (int) strlen(str) + 1 >= dynamicStr->size) {
         dynamicStr->size = dynamicStr->length + strlen(str) + DYNAMIC_STR_INCREASE_MEM;
         if (!(dynamicStr->str = realloc( dynamicStr->str, dynamicStr->size ))) return false;
     }
@@ -73,7 +73,3 @@ void ds_free ( Dynamic_string *str ) {
     free( str->str );
 
 }
-
-
-
-#endif

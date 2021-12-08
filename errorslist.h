@@ -1,11 +1,10 @@
-/*
+/**
+ * PROJECT: Implementation of imperative IFJ21 programming language compiler
+ * 
+ * AUTHOR(S): Maksim Tikhonov (xtikho00)
+ *            Sadovskyi Dmytro (xsadov06)
+ */
 
-*/
-
-
-/*
-    Errors list for different parts of compiler
-*/
 // 1 - chyba v programu v rámci lexikální analýzy (chybná struktura aktuálního lexému).
 #define ERR_LEXICAL 1   
 // 2 - chyba v programu v rámci syntaktické analýzy (chybná syntaxe programu).            

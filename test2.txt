@@ -1,5 +1,6 @@
--- Program 2: Vypocet faktorialu (rekurzivne)
+-- bla bla ( )
 require "ifj21"
+
 function factorial(n : integer) : integer
 	local n1 : integer = n - 1
 	if n < 2 then

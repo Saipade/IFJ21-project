@@ -1,6 +1,10 @@
-/*
+/**
+ * PROJECT: Implementation of imperative programming language compiler
+ * PART: Dynamic string
+ *
+ * AUTHOR(S): Maksim Tikhonov (xtikho00) 
+ */
 
-*/
 #ifndef STRING_PROCESSOR_H
 #define STRING_PROCESSOR_H
 
@@ -60,7 +64,5 @@ bool ds_add_chars ( Dynamic_string *dynamicStr, char *str);
  * @return
  */
 void ds_free ( Dynamic_string *str );
-
-
 
 #endif

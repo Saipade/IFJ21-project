@@ -15,12 +15,13 @@
 
 11. <function definition> -> FUNCTION ID ( <definition params> ) <output> <statement list> END
 12. <definition params> -> e
-13. <definition params> -> <param> <other definition param>
+13. <definition params> -> <definition param> <other definition param>
 14. <other definition param> -> e
 15. <other definition param> -> , <param> <other definition param>
 16. <definition param> -> ID : type
 
-17. <output> -> type <other output type>
+17. <output> -> e
+17.5. <output> -> type <other output type>
 18. <other output type> -> e
 19. <other output type> -> , type <other output type>
 
@@ -34,6 +35,7 @@
 24. <other write argument> -> e
 25. <other write argument> -> , <expression> <other write argument>
 
+25.5 <statement> -> <call or assignment>
 26. <statement> -> <ID list> <assignment values>
 27. <ID list> -> ID <other ID>
 28. <other ID> -> e
@@ -48,6 +50,8 @@
 36  <other call param> -> e
 37. <other call param> -> , <call param> <other call param>
 38. <call param> -> <expression>
+
+39. <statement> -> LOCAL ID : TYPE <optional definition>
 
 39. <statement> -> return <return list>
 40. <return list> -> <return value> <other return value>
